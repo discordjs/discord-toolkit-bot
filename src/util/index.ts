@@ -1,5 +1,13 @@
 import type { APIEmbed } from "discord.js";
 
+export const LIMIT_EMBED_DESCRIPTION = 4_048 as const;
+export const LIMIT_EMBED_TITLE = 256 as const;
+export const LIMIT_EMBED_FIELDS = 25 as const;
+export const LIMIT_EMBED_FIELD_NAME = 256 as const;
+export const LIMIT_EMBED_FIELD_VALUE = 1_024 as const;
+export const LIMIT_EMBED_AUTHOR_NAME = 256 as const;
+export const LIMIT_EMBED_FOOTER_TEXT = 2_048 as const;
+
 /**
  * Truncate a text to a provided length using a provided splitcharacter
  *
@@ -23,19 +31,11 @@ export function truncate(text: string, len: number, splitChar = " "): string {
 	return resText.length === text.length ? resText : `${resText.trim()}...`;
 }
 
-export const LIMIT_EMBED_DESCRIPTION = 4_048 as const;
-export const LIMIT_EMBED_TITLE = 256 as const;
-export const LIMIT_EMBED_FIELDS = 25 as const;
-export const LIMIT_EMBED_FIELD_NAME = 256 as const;
-export const LIMIT_EMBED_FIELD_VALUE = 1_024 as const;
-export const LIMIT_EMBED_AUTHOR_NAME = 256 as const;
-export const LIMIT_EMBED_FOOTER_TEXT = 2_048 as const;
-
 /**
- * Truncate the provided EMBED
+ * Truncate the provided embed
  *
- * @param embed - The EMBED to truncate
- * @returns The truncated EMBED
+ * @param embed - The embed to truncate
+ * @returns The truncated embed
  */
 export function truncateEmbed(embed: APIEmbed): APIEmbed {
 	return {
