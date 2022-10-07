@@ -1,3 +1,4 @@
+import { on } from "node:events";
 import { Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
 import type { Event } from "../Event.js";
@@ -11,14 +12,14 @@ export default class implements Event {
 
 	public constructor(public readonly client: Client<true>) {}
 
-	public execute() {
-		this.client.once(this.event, () => {
+	public async execute() {
+		for await (const _ of on(this.client, this.event)) {
 			logger.info({
 				msg: `Client ready`,
 				user: this.client.user.tag,
 				id: this.client.user.id,
 				guilds: this.client.guilds.cache.map((guild) => guild.name),
 			});
-		});
+		}
 	}
 }
