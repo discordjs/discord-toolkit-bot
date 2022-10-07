@@ -1,6 +1,6 @@
 {
 	"name": "discord.js-support-toolkit",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Utility bot for the discord.js discord server",
 	"scripts": {
 		"build:clean": "del-cli dist",
