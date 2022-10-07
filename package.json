@@ -1,0 +1,59 @@
+{
+	"name": "discord.js-support-toolkit",
+	"version": "0.0.0",
+	"description": "Utility bot for the discord.js discord server",
+	"scripts": {
+		"build": "rimraf dist && tsc",
+		"start": "env-cmd node --enable-source-maps --es-module-specifier-resolution=node dist/index.js",
+		"deploy": "node --unhandled-rejections=strict dist/index.js",
+		"lint": "eslint src --ext .ts",
+		"lint:fix": "eslint src --ext .ts --fix",
+		"deploy:commands": "env-cmd node --enable-source-maps --es-module-specifier-resolution=node dist/deploy.js"
+	},
+	"type": "module",
+	"main": "dist/index.js",
+	"license": "Apache-2.0",
+	"private": true,
+	"author": "Souji <timoqueezle@gmail.com>",
+	"keywords": [
+		"discord",
+		"discordapp",
+		"discord.js",
+		"slashcommand",
+		"utilities"
+	],
+	"dependencies": {
+		"dayjs": "^1.11.5",
+		"discord.js": "^14.5.0",
+		"dotenv": "^16.0.3",
+		"env-cmd": "^10.1.0",
+		"kleur": "^4.1.5",
+		"pino": "^8.6.1",
+		"readdirp": "^3.6.0",
+		"reflect-metadata": "^0.1.13",
+		"tsyringe": "^4.7.0",
+		"undici": "^5.11.0"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^17.1.2",
+		"@commitlint/config-angular": "^17.1.0",
+		"@types/node": "^18.8.3",
+		"@types/node-fetch": "^2.6.2",
+		"@types/pino": "^7.0.5",
+		"@typescript-eslint/eslint-plugin": "^5.39.0",
+		"@typescript-eslint/parser": "^5.39.0",
+		"eslint": "^8.24.0",
+		"eslint-config-neon": "^0.1.34",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-tsdoc": "^0.2.17",
+		"husky": "^8.0.1",
+		"lint-staged": "^13.0.3",
+		"prettier": "^2.7.1",
+		"prettier-eslint": "^15.0.1",
+		"rimraf": "^3.0.2",
+		"typescript": "^4.8.4"
+	},
+	"engines": {
+		"node": ">=18.7.0"
+	}
+}
