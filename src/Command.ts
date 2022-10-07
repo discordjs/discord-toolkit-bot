@@ -1,35 +1,35 @@
-import { extname } from 'node:path';
+import { extname } from "node:path";
 import {
 	type ChatInputCommandInteraction,
 	type AutocompleteInteraction,
 	type MessageContextMenuCommandInteraction,
 	type UserContextMenuCommandInteraction,
 	basename,
-} from 'discord.js';
-import type { CommandPayload, ArgumentsOf } from './interactions/ArgumentsOf.js';
-import { logger } from './util/logger.js';
+} from "discord.js";
+import type { CommandPayload, ArgumentsOf } from "./interactions/ArgumentsOf.js";
+import { logger } from "./util/logger.js";
 
 export type ChatInput<T extends CommandPayload> = {
 	chatInput(
-		interaction: ChatInputCommandInteraction<'cached'>,
+		interaction: ChatInputCommandInteraction<"cached">,
 		args: ArgumentsOf<T>,
 		locale: string,
 	): Promise<void> | void;
 };
 
 export type Autocomplete<T extends CommandPayload> = {
-	autocomplete(interaction: AutocompleteInteraction<'cached'>, args_: ArgumentsOf<T>): Promise<void> | void;
+	autocomplete(interaction: AutocompleteInteraction<"cached">, args_: ArgumentsOf<T>): Promise<void> | void;
 };
 
 export type MessageContext<T extends CommandPayload> = {
 	messageContext(
-		interaction: MessageContextMenuCommandInteraction<'cached'>,
+		interaction: MessageContextMenuCommandInteraction<"cached">,
 		args: ArgumentsOf<T>,
 	): Promise<void> | void;
 };
 
 export type UserContext<T extends CommandPayload> = {
-	userContext(interaction: UserContextMenuCommandInteraction<'cached'>, args: ArgumentsOf<T>): Promise<void> | void;
+	userContext(interaction: UserContextMenuCommandInteraction<"cached">, args: ArgumentsOf<T>): Promise<void> | void;
 };
 
 export type Commands<T extends CommandPayload> = Autocomplete<T> &
@@ -40,10 +40,10 @@ export type Commands<T extends CommandPayload> = Autocomplete<T> &
 	};
 
 export const enum CommandMethod {
-	Autocomplete = 'autocomplete',
-	ChatInput = 'chatInput',
-	MessageContext = 'messageContext',
-	UserContext = 'userContext',
+	Autocomplete = "autocomplete",
+	ChatInput = "chatInput",
+	MessageContext = "messageContext",
+	UserContext = "userContext",
 }
 
 type CommandMethodParameters<
@@ -61,7 +61,7 @@ export type ArgsParam<
 > = CommandMethodParameters<C, T>[1];
 
 export abstract class Command<T extends CommandPayload> implements Commands<T> {
-	public constructor(public readonly name?: T['name'][]) {}
+	public constructor(public readonly name?: T["name"][]) {}
 
 	public chatInput(interaction: InteractionParam, _: ArgsParam<T>): Promise<void> | void {
 		logger.info(
@@ -106,9 +106,9 @@ export type CommandInfo = {
 };
 
 export function commandInfo(path: string): CommandInfo | null {
-	if (extname(path) !== '.js') {
+	if (extname(path) !== ".js") {
 		return null;
 	}
 
-	return { name: basename(path, '.js') } as const;
+	return { name: basename(path, ".js") } as const;
 }

@@ -1,4 +1,4 @@
-import type { APIEmbed } from 'discord.js';
+import type { APIEmbed } from "discord.js";
 
 /**
  * Truncate a text to a provided length using a provided splitcharacter
@@ -8,7 +8,7 @@ import type { APIEmbed } from 'discord.js';
  * @param splitChar - Split character to use
  * @returns The truncated text
  */
-export function truncate(text: string, len: number, splitChar = ' '): string {
+export function truncate(text: string, len: number, splitChar = " "): string {
 	if (text.length <= len) return text;
 	const words = text.split(splitChar);
 	const res: string[] = [];

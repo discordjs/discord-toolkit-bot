@@ -4,8 +4,8 @@ import {
 	SnowflakeInfoCommand,
 	BitfieldLookupCommand,
 	IntentsLookupContextCommand,
-	UserinfoCommand,
-	UserinfoContextCommand,
+	UserInfoCommand,
+	UserInfoContextCommand,
 } from "./interactions/index.js";
 import { logger } from "./util/logger.js";
 
@@ -15,10 +15,10 @@ try {
 	logger.info("Start refreshing interaction (/) commands.");
 
 	const body: unknown[] = [
-		UserinfoCommand,
+		UserInfoCommand,
 		IntentsLookupContextCommand,
 		SnowflakeInfoCommand,
-		UserinfoContextCommand,
+		UserInfoContextCommand,
 		BitfieldLookupCommand,
 	];
 

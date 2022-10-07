@@ -1,15 +1,15 @@
-import { ApplicationCommandType, Events, Client } from 'discord.js';
-import { injectable, inject } from 'tsyringe';
-import type { Component } from '../Component.js';
-import type { Event } from '../Event.js';
-import { transformInteraction } from '../interactions/InteractionOptions.js';
-import { kCommands, kComponents } from '../tokens.js';
-import type { createCommands } from '../util/commands.js';
-import { logger } from '../util/logger.js';
+import { ApplicationCommandType, Events, Client } from "discord.js";
+import { injectable, inject } from "tsyringe";
+import type { Component } from "../Component.js";
+import type { Event } from "../Event.js";
+import { transformInteraction } from "../interactions/InteractionOptions.js";
+import { kCommands, kComponents } from "../tokens.js";
+import type { createCommands } from "../util/commands.js";
+import { logger } from "../util/logger.js";
 
 @injectable()
 export default class implements Event {
-	public name = 'Interaction handling';
+	public name = "Interaction handling";
 
 	public event = Events.InteractionCreate as const;
 
@@ -38,7 +38,7 @@ export default class implements Event {
 			if (interaction.isModalSubmit()) {
 				const component = this.components.get(interaction.customId.toLowerCase());
 				if (component) {
-					await component.execute(interaction, null, 'en');
+					await component.execute(interaction, null, "en");
 				} else {
 					await interaction.reply({
 						content: `\`🐛\`No handler found for component \`${interaction.customId.toLowerCase()}\``,
@@ -58,7 +58,7 @@ export default class implements Event {
 
 							logger.info(
 								{ command: { name: interaction.commandName, type: interaction.type }, userId: interaction.user.id },
-								`Executing ${isAutocomplete ? 'autocomplete' : 'chatInput command'} ${interaction.commandName}`,
+								`Executing ${isAutocomplete ? "autocomplete" : "chatInput command"} ${interaction.commandName}`,
 							);
 
 							if (isAutocomplete) {
@@ -105,7 +105,7 @@ export default class implements Event {
 						if (!interaction.deferred && !interaction.replied) {
 							logger.warn(
 								{ command: { name: interaction.commandName, type: interaction.type }, userId: interaction.user.id },
-								'Command interaction has not been deferred before throwing',
+								"Command interaction has not been deferred before throwing",
 							);
 							await interaction.deferReply({
 								ephemeral: true,

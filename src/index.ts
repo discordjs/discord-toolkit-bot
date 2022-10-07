@@ -1,19 +1,19 @@
-import 'reflect-metadata';
-import { URL, fileURLToPath, pathToFileURL } from 'node:url';
-import { Client, GatewayIntentBits, Options } from 'discord.js';
-import readdirp from 'readdirp';
-import { container } from 'tsyringe';
-import { type Command, commandInfo } from './Command.js';
-import type { Component } from './Component.js';
-import { componentInfo } from './Component.js';
-import type { Event } from './Event.js';
-import type { CommandPayload } from './interactions/ArgumentsOf.js';
-import { kCommands, kComponents } from './tokens.js';
-import { createCommands } from './util/commands.js';
-import { createComponents } from './util/components.js';
-import { dynamicImport } from './util/dynamicImport.js';
-import { logger } from './util/logger.js';
-import { createWebhooks } from './util/webhooks.js';
+import "reflect-metadata";
+import { URL, fileURLToPath, pathToFileURL } from "node:url";
+import { Client, GatewayIntentBits, Options } from "discord.js";
+import readdirp from "readdirp";
+import { container } from "tsyringe";
+import { type Command, commandInfo } from "./Command.js";
+import type { Component } from "./Component.js";
+import { componentInfo } from "./Component.js";
+import type { Event } from "./Event.js";
+import type { CommandPayload } from "./interactions/ArgumentsOf.js";
+import { kCommands, kComponents } from "./tokens.js";
+import { createCommands } from "./util/commands.js";
+import { createComponents } from "./util/components.js";
+import { dynamicImport } from "./util/dynamicImport.js";
+import { logger } from "./util/logger.js";
+import { createWebhooks } from "./util/webhooks.js";
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
@@ -29,17 +29,17 @@ createCommands();
 createWebhooks();
 createComponents();
 
-const commandFiles = readdirp(fileURLToPath(new URL('commands', import.meta.url)), {
-	fileFilter: '*.js',
-	directoryFilter: '!sub',
+const commandFiles = readdirp(fileURLToPath(new URL("commands", import.meta.url)), {
+	fileFilter: "*.js",
+	directoryFilter: "!sub",
 });
 
-const eventFiles = readdirp(fileURLToPath(new URL('events', import.meta.url)), {
-	fileFilter: '*.js',
+const eventFiles = readdirp(fileURLToPath(new URL("events", import.meta.url)), {
+	fileFilter: "*.js",
 });
 
-const componentFiles = readdirp(fileURLToPath(new URL('components', import.meta.url)), {
-	fileFilter: '*.js',
+const componentFiles = readdirp(fileURLToPath(new URL("components", import.meta.url)), {
+	fileFilter: "*.js",
 });
 
 try {
@@ -58,8 +58,8 @@ try {
 		);
 		const command = container.resolve<Command<CommandPayload>>((await dynamic()).default);
 		logger.info(
-			{ command: { name: command.name?.join(', ') ?? cmdInfo.name } },
-			`Registering command: ${command.name?.join(', ') ?? cmdInfo.name}`,
+			{ command: { name: command.name?.join(", ") ?? cmdInfo.name } },
+			`Registering command: ${command.name?.join(", ") ?? cmdInfo.name}`,
 		);
 
 		if (command.name) {

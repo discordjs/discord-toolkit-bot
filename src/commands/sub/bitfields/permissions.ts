@@ -1,11 +1,11 @@
-import { codeBlock, inlineCode, PermissionFlagsBits, PermissionsBitField } from 'discord.js';
-import type { ArgsParam, InteractionParam } from '../../../Command.js';
-import type { BitfieldLookupCommand } from '../../../interactions/slash/bitfieldLookup.js';
-import { formatBits } from '../../bitfields.js';
+import { codeBlock, inlineCode, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import type { ArgsParam, InteractionParam } from "../../../Command.js";
+import type { BitfieldLookupCommand } from "../../../interactions/slash/bitfieldLookup.js";
+import { formatBits } from "../../bitfields.js";
 
 export async function permissions(
 	interaction: InteractionParam,
-	args: ArgsParam<typeof BitfieldLookupCommand>['permissions'],
+	args: ArgsParam<typeof BitfieldLookupCommand>["permissions"],
 ) {
 	if (Number.isNaN(Number.parseInt(args.bitfield, 10))) {
 		await interaction.reply({
@@ -17,11 +17,11 @@ export async function permissions(
 
 	await interaction.reply({
 		content: codeBlock(
-			'ansi',
+			"ansi",
 			formatBits(
 				new PermissionsBitField(BigInt(args.bitfield)),
 				(key: string) => PermissionFlagsBits[key as keyof typeof PermissionFlagsBits],
-				'Permission',
+				"Permission",
 			),
 		),
 		ephemeral: true,

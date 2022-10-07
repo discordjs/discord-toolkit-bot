@@ -1,11 +1,11 @@
-import { Events, Client } from 'discord.js';
-import { injectable } from 'tsyringe';
-import type { Event } from '../Event.js';
-import { logger } from '../util/logger.js';
+import { Events, Client } from "discord.js";
+import { injectable } from "tsyringe";
+import type { Event } from "../Event.js";
+import { logger } from "../util/logger.js";
 
 @injectable()
 export default class implements Event {
-	public name = 'Ready';
+	public name = "Ready";
 
 	public event = Events.ClientReady as const;
 

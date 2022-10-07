@@ -1,6 +1,6 @@
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime.js';
-import utc from 'dayjs/plugin/utc.js';
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime.js";
+import utc from "dayjs/plugin/utc.js";
 import {
 	type TimestampStylesString,
 	type APIEmbed,
@@ -11,14 +11,14 @@ import {
 	time,
 	TimestampStyles,
 	ApplicationFlagsBitField,
-} from 'discord.js';
-import kleur from 'kleur';
-import { type InteractionParam, type CommandMethod, type ArgsParam, Command } from '../Command.js';
-import type { UserinfoContextCommand } from '../interactions/context/userinfoContext.js';
-import type { UserinfoCommand } from '../interactions/slash/userinfo.js';
-import { EMOJI_NEWBIE, TAB, Colors } from '../util/constants.js';
-import { formatUserFlag, formatApplicationFlag } from '../util/formatting.js';
-import { truncateEmbed } from '../util/index.js';
+} from "discord.js";
+import kleur from "kleur";
+import { type InteractionParam, type CommandMethod, type ArgsParam, Command } from "../Command.js";
+import type { UserInfoContextCommand } from "../interactions/context/userinfoContext.js";
+import type { UserInfoCommand } from "../interactions/slash/userinfo.js";
+import { EMOJI_NEWBIE, TAB, Colors } from "../util/constants.js";
+import { formatUserFlag, formatApplicationFlag } from "../util/formatting.js";
+import { truncateEmbed } from "../util/index.js";
 
 kleur.enabled = true;
 
@@ -52,7 +52,7 @@ export function applyMemberInfo(embed: APIEmbed, member: GuildMember): string[] 
 	];
 
 	if (member.avatar) {
-		memberInfo.push(`Guild avatar: [${member.avatar}](${member.avatarURL({ extension: 'png', size: 2_048 })})`);
+		memberInfo.push(`Guild avatar: [${member.avatar}](${member.avatarURL({ extension: "png", size: 2_048 })})`);
 	}
 
 	if (member.roles.color) {
@@ -65,7 +65,7 @@ export function applyMemberInfo(embed: APIEmbed, member: GuildMember): string[] 
 
 	if (member.roles.icon) {
 		embed.footer = {
-			icon_url: member.roles.icon.iconURL({ extension: 'png', size: 2_048 })!,
+			icon_url: member.roles.icon.iconURL({ extension: "png", size: 2_048 })!,
 			text: member.roles.icon.name,
 		};
 
@@ -95,7 +95,7 @@ export function applyMemberInfo(embed: APIEmbed, member: GuildMember): string[] 
 	}
 
 	if (member.id === member.guild.ownerId) {
-		notices.push('Owner of this guild');
+		notices.push("Owner of this guild");
 	}
 
 	if (Date.now() - (member.joinedTimestamp ?? 0) < 1_000 * 60 * 60 * 24 * 7) {
@@ -110,15 +110,15 @@ export function applyMemberInfo(embed: APIEmbed, member: GuildMember): string[] 
 				.reduce((accumulator: string[], current) => {
 					return [...accumulator, italic(`<@&${current.id}>`)];
 				}, [])
-				.join(', ')}`,
+				.join(", ")}`,
 		);
 	}
 
 	embed.fields = [
 		...(embed.fields ?? []),
 		{
-			name: 'Member info',
-			value: memberInfo.map((part) => `• ${part}`).join('\n'),
+			name: "Member info",
+			value: memberInfo.map((part) => `• ${part}`).join("\n"),
 		},
 	];
 
@@ -127,7 +127,7 @@ export function applyMemberInfo(embed: APIEmbed, member: GuildMember): string[] 
 	}
 
 	embed.thumbnail = {
-		url: member.displayAvatarURL({ extension: 'png', size: 2_048 }),
+		url: member.displayAvatarURL({ extension: "png", size: 2_048 }),
 	};
 
 	if (member.pending) {
@@ -150,33 +150,33 @@ export async function applyUserInfo(embed: APIEmbed, user: User): Promise<string
 	];
 
 	if (user.avatar) {
-		userInfo.push(`Avatar: [${user.avatar}](${user.avatarURL({ extension: 'png', size: 2_048 })})`);
+		userInfo.push(`Avatar: [${user.avatar}](${user.avatarURL({ extension: "png", size: 2_048 })})`);
 	}
 
-	const bannerURL = user.bannerURL({ extension: 'png', size: 2_048 });
+	const bannerURL = user.bannerURL({ extension: "png", size: 2_048 });
 	if (bannerURL && user.banner) {
 		userInfo.push(`Banner: [${user.banner}](${bannerURL})`);
 	}
 
 	embed.thumbnail = {
-		url: user.displayAvatarURL({ extension: 'png', size: 2_048 }),
+		url: user.displayAvatarURL({ extension: "png", size: 2_048 }),
 	};
 
 	if (user.bot) {
-		notices.push('Bot application');
+		notices.push("Bot application");
 	}
 
 	if (user.flags?.bitfield) {
 		const flagStrings: string[] = user.flags.toArray().map((flagName) => italic(formatUserFlag(flagName)));
 
-		userInfo.push(`Badges:\n${TAB}${flagStrings.join(', ')}`);
+		userInfo.push(`Badges:\n${TAB}${flagStrings.join(", ")}`);
 	}
 
 	embed.fields = [
 		...(embed.fields ?? []),
 		{
-			name: 'User info',
-			value: userInfo.map((info) => `• ${info}`).join('\n'),
+			name: "User info",
+			value: userInfo.map((info) => `• ${info}`).join("\n"),
 		},
 	];
 
@@ -188,9 +188,9 @@ export async function applyApplicationInfo(embed: APIEmbed, user: User) {
 		const res = (await user.client.rest.get(`/applications/${user.id}/rpc`)) as ApplicationRPC;
 		const info: string[] = [];
 
-		info.push(`${res.bot_public ? 'Bot is **public**' : 'Bot is **private**'}`);
+		info.push(`${res.bot_public ? "Bot is **public**" : "Bot is **private**"}`);
 		info.push(
-			`${res.bot_require_code_grant ? 'Bot **requires** OAuth2 grant' : 'Bot **does not require** OAuth2 grant'}`,
+			`${res.bot_require_code_grant ? "Bot **requires** OAuth2 grant" : "Bot **does not require** OAuth2 grant"}`,
 		);
 
 		const flags = new ApplicationFlagsBitField(res.flags).toArray().map((flagName) => formatApplicationFlag(flagName));
@@ -203,7 +203,7 @@ export async function applyApplicationInfo(embed: APIEmbed, user: User) {
 			embed.fields = [
 				...(embed.fields ?? []),
 				{
-					name: 'App Description',
+					name: "App Description",
 					value: res.description,
 				},
 			];
@@ -213,7 +213,7 @@ export async function applyApplicationInfo(embed: APIEmbed, user: User) {
 			embed.fields = [
 				...(embed.fields ?? []),
 				{
-					name: 'App Summary',
+					name: "App Summary",
 					value: res.summary,
 				},
 			];
@@ -223,8 +223,8 @@ export async function applyApplicationInfo(embed: APIEmbed, user: User) {
 			embed.fields = [
 				...(embed.fields ?? []),
 				{
-					name: 'App Info',
-					value: info.map((line) => `• ${line}`).join('\n'),
+					name: "App Info",
+					value: info.map((line) => `• ${line}`).join("\n"),
 				},
 			];
 		}
@@ -235,10 +235,10 @@ export async function applyApplicationInfo(embed: APIEmbed, user: User) {
 	}
 }
 
-export default class extends Command<typeof UserinfoCommand> {
+export default class extends Command<typeof UserInfoCommand> {
 	private async handle(
 		interaction: InteractionParam | InteractionParam<CommandMethod.UserContext>,
-		args: ArgsParam<typeof UserinfoCommand | typeof UserinfoContextCommand>,
+		args: ArgsParam<typeof UserInfoCommand | typeof UserInfoContextCommand>,
 	): Promise<void> {
 		const embed: APIEmbed = {
 			color: Colors.Dark,
@@ -263,8 +263,8 @@ export default class extends Command<typeof UserinfoCommand> {
 			embed.fields = [
 				...(embed.fields ?? []),
 				{
-					name: 'Notices',
-					value: notices.map((notice) => `• ${notice}`).join('\n'),
+					name: "Notices",
+					value: notices.map((notice) => `• ${notice}`).join("\n"),
 				},
 			];
 		}
@@ -276,14 +276,14 @@ export default class extends Command<typeof UserinfoCommand> {
 
 	public override async chatInput(
 		interaction: InteractionParam,
-		args: ArgsParam<typeof UserinfoCommand>,
+		args: ArgsParam<typeof UserInfoCommand>,
 	): Promise<void> {
 		await this.handle(interaction, args);
 	}
 
 	public override async userContext(
 		interaction: InteractionParam<CommandMethod.UserContext>,
-		args: ArgsParam<typeof UserinfoContextCommand>,
+		args: ArgsParam<typeof UserInfoContextCommand>,
 	): Promise<void> {
 		await this.handle(interaction, args);
 	}

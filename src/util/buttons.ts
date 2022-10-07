@@ -1,4 +1,4 @@
-import { type APIButtonComponent, ButtonStyle, ComponentType, type APIButtonComponentBase } from 'discord.js';
+import { type APIButtonComponent, ButtonStyle, ComponentType, type APIButtonComponentBase } from "discord.js";
 
 export function createButton({
 	label,

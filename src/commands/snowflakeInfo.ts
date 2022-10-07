@@ -7,11 +7,11 @@ import {
 	TimestampStyles,
 	Routes,
 	time,
-} from 'discord.js';
-import { fetch } from 'undici';
-import { type ArgsParam, type InteractionParam, Command } from '../Command.js';
-import type { SnowflakeInfoCommand } from '../interactions/slash/snowflakeInfo.js';
-import { Colors } from '../util/constants.js';
+} from "discord.js";
+import { fetch } from "undici";
+import { type ArgsParam, type InteractionParam, Command } from "../Command.js";
+import type { SnowflakeInfoCommand } from "../interactions/slash/snowflakeInfo.js";
+import { Colors } from "../util/constants.js";
 
 type Validator = {
 	predicate(p1: REST, p2: Snowflake): Promise<boolean>;
@@ -30,7 +30,7 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 					return error.code === 50_001;
 				}
 			},
-			type: 'Channel',
+			type: "Channel",
 		},
 		{
 			predicate: async (rest: REST, snowflake: Snowflake) => {
@@ -42,7 +42,7 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 					return error.code === 50_013;
 				}
 			},
-			type: 'Guild',
+			type: "Guild",
 		},
 		{
 			predicate: async (rest: REST, snowflake: Snowflake) => {
@@ -54,7 +54,7 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 					return error.code === 50_013;
 				}
 			},
-			type: 'Webhook',
+			type: "Webhook",
 		},
 		{
 			predicate: async (rest: REST, snowflake: Snowflake) => {
@@ -65,18 +65,18 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 					return false;
 				}
 			},
-			type: 'Sticker',
+			type: "Sticker",
 		},
 		{
 			predicate: async (rest: REST, snowflake: Snowflake) => {
 				try {
-					const res = await fetch(rest.cdn.emoji(snowflake, 'png'));
+					const res = await fetch(rest.cdn.emoji(snowflake, "png"));
 					return res.ok;
 				} catch {
 					return false;
 				}
 			},
-			type: 'Emoji',
+			type: "Emoji",
 		},
 		{
 			predicate: async (rest: REST, snowflake: Snowflake) => {
@@ -87,7 +87,7 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 					return false;
 				}
 			},
-			type: 'User',
+			type: "User",
 		},
 	];
 
@@ -111,7 +111,7 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 	): Promise<void> {
 		if (!/^\d{17,20}$/gi.test(args.snowflake)) {
 			await interaction.reply({
-				content: 'Invalid snowflake',
+				content: "Invalid snowflake",
 				ephemeral: true,
 			});
 			return;
@@ -135,12 +135,12 @@ export default class extends Command<typeof SnowflakeInfoCommand> {
 		await interaction.editReply({
 			embeds: [
 				{
-					description: descriptionParts.join(' \n'),
+					description: descriptionParts.join(" \n"),
 					footer: type
 						? undefined
 						: {
-								text: `The snowflake does not represent a ${new Intl.ListFormat('en-GB', {
-									type: 'disjunction',
+								text: `The snowflake does not represent a ${new Intl.ListFormat("en-GB", {
+									type: "disjunction",
 								}).format(this.allTypes)}`,
 								icon_url: interaction.client.user.displayAvatarURL(),
 						  },

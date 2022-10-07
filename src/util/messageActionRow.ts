@@ -1,4 +1,4 @@
-import { type APIActionRowComponent, type APIMessageActionRowComponent, ComponentType } from 'discord.js';
+import { type APIActionRowComponent, type APIMessageActionRowComponent, ComponentType } from "discord.js";
 
 export function createMessageActionRow(
 	components: APIMessageActionRowComponent[],

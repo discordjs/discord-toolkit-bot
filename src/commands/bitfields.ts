@@ -1,11 +1,11 @@
-import { GatewayIntentBits, codeBlock, IntentsBitField, type BitField } from 'discord.js';
-import kleur from 'kleur';
-import type { ArgsParam, CommandMethod } from '../Command.js';
-import { type InteractionParam, Command } from '../Command.js';
-import type { IntentsLookupContextCommand } from '../interactions/context/intentsLookupContext.js';
-import type { BitfieldLookupCommand } from '../interactions/slash/bitfieldLookup.js';
-import { intents } from './sub/bitfields/intents.js';
-import { permissions } from './sub/bitfields/permissions.js';
+import { GatewayIntentBits, codeBlock, IntentsBitField, type BitField } from "discord.js";
+import kleur from "kleur";
+import type { ArgsParam, CommandMethod } from "../Command.js";
+import { type InteractionParam, Command } from "../Command.js";
+import type { IntentsLookupContextCommand } from "../interactions/context/intentsLookupContext.js";
+import type { BitfieldLookupCommand } from "../interactions/slash/bitfieldLookup.js";
+import { intents } from "./sub/bitfields/intents.js";
+import { permissions } from "./sub/bitfields/permissions.js";
 
 kleur.enabled = true;
 
@@ -38,14 +38,14 @@ export function formatBits<T extends bigint | number>(
 		kleur.white(`${headingPrefix} deconstruction for ${bits.bitfield}:`),
 		...entries.map(
 			(entry, index) =>
-				`${entry.represented ? kleur.green('[✔]') : kleur.red('[✖]')} ${entry.name} (${entry.bit}) 1<<${index}`,
+				`${entry.represented ? kleur.green("[✔]") : kleur.red("[✖]")} ${entry.name} (${entry.bit}) 1<<${index}`,
 		),
-	].join('\n');
+	].join("\n");
 }
 
 export default class extends Command<typeof BitfieldLookupCommand | typeof IntentsLookupContextCommand> {
 	public constructor() {
-		super(['bitfields', 'Parse Intents']);
+		super(["bitfields", "Parse Intents"]);
 	}
 
 	public override async chatInput(
@@ -53,10 +53,10 @@ export default class extends Command<typeof BitfieldLookupCommand | typeof Inten
 		args: ArgsParam<typeof BitfieldLookupCommand>,
 	): Promise<void> {
 		switch (Object.keys(args)[0]) {
-			case 'intents':
+			case "intents":
 				await intents(interaction, args.intents);
 				break;
-			case 'permissions':
+			case "permissions":
 				await permissions(interaction, args.permissions);
 				break;
 			default:
@@ -76,7 +76,7 @@ export default class extends Command<typeof BitfieldLookupCommand | typeof Inten
 
 		if (!res) {
 			await interaction.reply({
-				content: 'Cannot find any potential Gateway Intent numerals in this message',
+				content: "Cannot find any potential Gateway Intent numerals in this message",
 				ephemeral: true,
 			});
 			return;
@@ -85,11 +85,11 @@ export default class extends Command<typeof BitfieldLookupCommand | typeof Inten
 		const bitnumeral = Number.parseInt(res[1]!, 10);
 		await interaction.reply({
 			content: codeBlock(
-				'ansi',
+				"ansi",
 				formatBits(
 					new IntentsBitField(bitnumeral),
 					(key: string) => GatewayIntentBits[key as keyof typeof GatewayIntentBits],
-					'Gateway Intent',
+					"Gateway Intent",
 				),
 			),
 			ephemeral: true,

@@ -1,6 +1,6 @@
-import { ApplicationCommandType } from 'discord.js';
+import { ApplicationCommandType } from "discord.js";
 
-export const UserinfoContextCommand = {
+export const UserInfoContextCommand = {
 	type: ApplicationCommandType.User,
-	name: 'Userinfo',
+	name: "Userinfo",
 } as const;
