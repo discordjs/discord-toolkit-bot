@@ -6,7 +6,6 @@
 	},
 	"ignorePatterns": ["**/dist/*"],
 	"rules": {
-		"@typescript-eslint/no-unused-vars": 0,
 		"@typescript-eslint/no-misused-promises": 0
 	}
 }
