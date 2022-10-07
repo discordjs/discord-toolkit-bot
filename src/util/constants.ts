@@ -16,7 +16,7 @@ export const DATE_FORMAT_WITH_SECONDS = "YYYY/MM/DD HH:mm:ss";
 
 export const DISCORD_USER_FLAG_SPAMMER = 1 << 20;
 
-export const TAB = " \u200B \u200B \u200B " as const;
+export const TAB = "\u200B \u200B \u200B" as const;
 
 export const EMOJI_NEWBIE = "<:newbie:962332319623049226>" as const;
 export const ASSISTCHANNELS = ["986520997006032896", "998942774994927646"];
