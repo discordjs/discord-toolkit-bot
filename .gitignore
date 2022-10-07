@@ -1,6 +1,43 @@
-# secrets
+# Packages
+node_modules/
+
+# Log files
+logs/
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+
+# Env
 .env
 
-# build flow
+# Dist
 dist/
-node_modules
+
+# Miscellaneous
+.tmp/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+.turbo
+tsconfig.tsbuildinfo
+coverage/
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Cache
+.prettiercache
+.eslintcache
+
