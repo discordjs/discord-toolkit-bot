@@ -1,18 +1,18 @@
-import process from 'node:process';
-import { Routes, REST } from 'discord.js';
+import process from "node:process";
+import { Routes, REST } from "discord.js";
 import {
 	SnowflakeInfoCommand,
 	BitfieldLookupCommand,
 	IntentsLookupContextCommand,
 	UserinfoCommand,
 	UserinfoContextCommand,
-} from './interactions/index.js';
-import { logger } from './util/logger.js';
+} from "./interactions/index.js";
+import { logger } from "./util/logger.js";
 
-const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN!);
+const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
 
 try {
-	logger.info('Start refreshing interaction (/) commands.');
+	logger.info("Start refreshing interaction (/) commands.");
 
 	const body: unknown[] = [
 		UserinfoCommand,
