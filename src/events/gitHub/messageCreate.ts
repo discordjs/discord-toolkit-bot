@@ -9,7 +9,7 @@ import { ASSISTCHANNELS } from "../../util/constants.js";
 
 @injectable()
 export default class implements Event {
-	public name = "Message GitHub lines resolvable";
+	public name = "Resolve GitHub links";
 
 	public event = Events.MessageCreate as const;
 

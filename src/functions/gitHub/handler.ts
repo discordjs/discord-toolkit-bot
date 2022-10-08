@@ -101,7 +101,7 @@ export async function handleGithubUrls(message: Message<true>) {
 		if (!thread) {
 			thread = await message.startThread({
 				name: `GitHub Lines for this message`,
-				reason: "Message contained a GitHub URL that points to specific lines",
+				reason: "Resolving GitHub link",
 				autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
 			});
 		}
