@@ -9,7 +9,7 @@ import { ASSISTCHANNELS } from "../../util/constants.js";
 
 @injectable()
 export default class implements Event {
-	public name = "Github thread message lines resolvable";
+	public name = "Forum post GitHub lines resolvable";
 
 	public event = Events.ThreadCreate as const;
 
@@ -20,8 +20,8 @@ export default class implements Event {
 			[ThreadChannel, boolean]
 		>) {
 			try {
-				await wait(ASSISTCHANNELS.includes(thread.parentId ?? "") ? 2_500 : 1_000);
 				if (!newlyCreated || thread.parent!.type !== ChannelType.GuildForum) return;
+				await wait(ASSISTCHANNELS.includes(thread.parentId ?? "") ? 2_500 : 1_000);
 
 				const message = await thread.fetchStarterMessage();
 				if (!message) return;

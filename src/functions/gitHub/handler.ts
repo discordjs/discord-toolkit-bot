@@ -1,4 +1,3 @@
-import { setTimeout as wait } from "node:timers/promises";
 import type { VoiceChannel } from "discord.js";
 import {
 	type AnyThreadChannel,
@@ -25,8 +24,6 @@ export async function handleGithubUrls(message: Message<true>) {
 
 	const isOnThread =
 		message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement;
-
-	await wait(1_000);
 
 	let thread: AnyThreadChannel<boolean> | VoiceChannel | null = isOnThread ? message.channel : null;
 
