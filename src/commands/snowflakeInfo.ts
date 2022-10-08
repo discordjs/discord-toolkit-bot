@@ -1,3 +1,5 @@
+import { Command } from "@yuudachi/framework";
+import type { InteractionParam, ArgsParam } from "@yuudachi/framework/types";
 import {
 	type Snowflake,
 	inlineCode,
@@ -9,7 +11,6 @@ import {
 	time,
 } from "discord.js";
 import { fetch } from "undici";
-import { type ArgsParam, type InteractionParam, Command } from "../Command.js";
 import type { SnowflakeInfoCommand } from "../interactions/slash/snowflakeInfo.js";
 import { Colors } from "../util/constants.js";
 

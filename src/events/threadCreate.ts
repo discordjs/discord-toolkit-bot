@@ -1,9 +1,9 @@
 import { on } from "node:events";
 import { setTimeout as wait } from "node:timers/promises";
+import type { Event } from "@yuudachi/framework/types";
 import type { ThreadChannel } from "discord.js";
 import { Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
-import type { Event } from "../Event.js";
 import { ASSISTCHANNELS } from "../util/constants.js";
 import { logger } from "../util/logger.js";
 

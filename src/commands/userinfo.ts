@@ -1,3 +1,5 @@
+import { Command } from "@yuudachi/framework";
+import type { InteractionParam, CommandMethod, ArgsParam } from "@yuudachi/framework/types";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
 import utc from "dayjs/plugin/utc.js";
@@ -13,7 +15,6 @@ import {
 	ApplicationFlagsBitField,
 } from "discord.js";
 import kleur from "kleur";
-import { type InteractionParam, type CommandMethod, type ArgsParam, Command } from "../Command.js";
 import type { UserInfoContextCommand } from "../interactions/context/userinfoContext.js";
 import type { UserInfoCommand } from "../interactions/slash/userinfo.js";
 import { EMOJI_NEWBIE, TAB, Colors } from "../util/constants.js";

@@ -1,7 +1,7 @@
 import { on } from "node:events";
+import type { Event } from "@yuudachi/framework/types";
 import { Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
-import type { Event } from "../Event.js";
 import { logger } from "../util/logger.js";
 
 @injectable()
