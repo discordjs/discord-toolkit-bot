@@ -76,8 +76,6 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const url = convertUrlToRawUrl(match[0]!);
 
-		console.log(url);
-
 		const rawFile = await request(url).then(async (res) => {
 			return res.statusCode === 200 ? res.body.text() : null;
 		});
