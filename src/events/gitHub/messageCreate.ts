@@ -4,7 +4,7 @@ import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import { type Message, Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
-import { handleGithubUrls } from "../../functions/gitHub/handler.js";
+import { handleGithubUrls } from "../../functions/github/handler.js";
 import { ASSISTCHANNELS } from "../../util/constants.js";
 
 @injectable()
