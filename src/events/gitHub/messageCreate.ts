@@ -1,9 +1,9 @@
 import { on } from "node:events";
+import { logger } from "@yuudachi/framework";
+import type { Event } from "@yuudachi/framework/types";
 import { type Message, Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
-import type { Event } from "../../Event.js";
 import { handleGithubUrls } from "../../functions/gitHub/handler.js";
-import { logger } from "../../util/logger.js";
 
 @injectable()
 export default class implements Event {
