@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { ellipsis } from "@yuudachi/framework";
 import type { VoiceChannel } from "discord.js";
 import {
@@ -13,14 +14,20 @@ import kleur from "kleur";
 import { request } from "undici";
 
 // eslint-disable-next-line unicorn/no-unsafe-regex
-const GitHubUrlRegex = /https:\/\/github.com\/(?<org>.+?)\/(?<repo>.+?)\/blob(?<path>\/[^\n#]+)(?<opts>.+)?/g;
+const GitHubUrlRegex = /https:\/\/github.com\/(?<org>.+?)\/(?<repo>.+?)\/blob(?<path>\/[^\n#>]+)(?<opts>.+)?/g;
 // eslint-disable-next-line unicorn/no-unsafe-regex
 const GitHubUrlLinesRegex = /^#L(?<start>\d+)(?:-L(?<end>\d+))?/;
 
 const SAFE_BOUNDARY = 10;
 
 function convertUrlToRawUrl(url: string) {
-	return url.replace("github.com", "raw.githubusercontent.com").replace("/blob", "");
+	return (
+		url
+			// eslint-disable-next-line prefer-named-capture-group
+			.replace(">", "")
+			.replace("github.com", "raw.githubusercontent.com")
+			.replace("/blob", "")
+	);
 }
 
 function resolveEndLine(startLine: number, endLine: number, isOnThread: boolean) {
@@ -62,21 +69,48 @@ export async function handleGithubUrls(message: Message<true>) {
 		const { org, repo, path, opts } = match.groups!;
 		const lines = opts?.match(GitHubUrlLinesRegex)?.groups;
 
-		if (!lines) continue;
+		const startLine = Number(lines?.start);
+		const fullFile = !lines || Number.isNaN(startLine);
 
-		const { start, end } = lines;
-
-		const startLine = Number(start);
-		if (Number.isNaN(startLine)) continue;
-
-		const { endLine, delta } = resolveEndLine(startLine, Number(end), isOnThread);
+		const { endLine, delta } = resolveEndLine(startLine, Number(lines?.end), isOnThread);
 
 		const url = convertUrlToRawUrl(match[0]!);
 
-		const rewFile = await request(url).then(async (res) => res.body.text());
-		const linesRequested = rewFile.split("\n").slice(startLine - 1, end ? endLine : startLine);
+		console.log(url);
+
+		const rawFile = await request(url).then(async (res) => {
+			return res.statusCode === 200 ? res.body.text() : null;
+		});
+
+		if (!rawFile) continue;
 
 		const lang = path!.split(".").pop() ?? "ansi";
+
+		if (!thread) {
+			thread = await message.startThread({
+				name: `GitHub Lines for this message`,
+				reason: "Resolving GitHub link",
+				autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
+			});
+		}
+
+		if (fullFile) {
+			await thread.send({
+				content: `Full file from ${inlineCode(`${org}/${repo}${path}`)}`,
+				files: [
+					{
+						attachment: Buffer.from(rawFile),
+						name: `${repo}-${path}`,
+					},
+				],
+			});
+
+			continue;
+		}
+
+		const { start, end } = lines!;
+
+		const linesRequested = rawFile.split("\n").slice(startLine - 1, end ? endLine : startLine);
 
 		const content = [
 			`${
@@ -97,14 +131,6 @@ export async function handleGithubUrls(message: Message<true>) {
 				),
 			),
 		);
-
-		if (!thread) {
-			thread = await message.startThread({
-				name: `GitHub Lines for this message`,
-				reason: "Resolving GitHub link",
-				autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
-			});
-		}
 
 		if (content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
 			await thread.send(content.join("\n"));
