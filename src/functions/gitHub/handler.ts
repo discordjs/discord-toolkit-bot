@@ -10,7 +10,7 @@ import {
 	ChannelType,
 } from "discord.js";
 import { request } from "undici";
-import { ellipsis } from "../../util/ellipisis.js";
+import { ellipsis } from "../../util/ellipsis.js";
 import { convertUrlToRawUrl } from "../../util/gitHub.js";
 
 // eslint-disable-next-line unicorn/no-unsafe-regex
