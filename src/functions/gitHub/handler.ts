@@ -66,12 +66,12 @@ export async function handleGithubUrls(message: Message<true>) {
 		const startLine = Number(start);
 		if (Number.isNaN(startLine)) continue;
 
-		const { endLine: nEnd, delta } = resolveEndLine(startLine, Number(end), isOnThread);
+		const { endLine, delta } = resolveEndLine(startLine, Number(end), isOnThread);
 
 		const url = convertUrlToRawUrl(match[0]!);
 
 		const rewFile = await request(url).then(async (res) => res.body.text());
-		const linesRequested = rewFile.split("\n").slice(startLine - 1, end ? nEnd : startLine);
+		const linesRequested = rewFile.split("\n").slice(startLine - 1, end ? endLine : startLine);
 
 		const lang = path!.split(".").pop() ?? "ansi";
 
