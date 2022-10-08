@@ -1,18 +1,17 @@
 import "reflect-metadata";
 import { URL, fileURLToPath, pathToFileURL } from "node:url";
+import {
+	dynamicImport,
+	createCommands,
+	type Command,
+	commandInfo,
+	kCommands,
+	container,
+	logger,
+} from "@yuudachi/framework";
+import type { CommandPayload, Event } from "@yuudachi/framework/types";
 import { Client, GatewayIntentBits, Options } from "discord.js";
 import readdirp from "readdirp";
-import { container } from "tsyringe";
-import { type Command, commandInfo } from "./Command.js";
-import type { Component } from "./Component.js";
-import { componentInfo } from "./Component.js";
-import type { Event } from "./Event.js";
-import type { CommandPayload } from "./interactions/ArgumentsOf.js";
-import { kCommands, kComponents } from "./tokens.js";
-import { createCommands } from "./util/commands.js";
-import { createComponents } from "./util/components.js";
-import { dynamicImport } from "./util/dynamicImport.js";
-import { logger } from "./util/logger.js";
 import { createWebhooks } from "./util/webhooks.js";
 
 const client = new Client({
@@ -27,7 +26,6 @@ container.register(Client, { useValue: client });
 
 createCommands();
 createWebhooks();
-createComponents();
 
 const commandFiles = readdirp(fileURLToPath(new URL("commands", import.meta.url)), {
 	fileFilter: "*.js",
@@ -38,13 +36,8 @@ const eventFiles = readdirp(fileURLToPath(new URL("events", import.meta.url)), {
 	fileFilter: "*.js",
 });
 
-const componentFiles = readdirp(fileURLToPath(new URL("components", import.meta.url)), {
-	fileFilter: "*.js",
-});
-
 try {
 	const commands = container.resolve<Map<string, Command<CommandPayload>>>(kCommands);
-	const components = container.resolve<Map<string, Component>>(kComponents);
 
 	for await (const dir of commandFiles) {
 		const cmdInfo = commandInfo(dir.path);
@@ -81,19 +74,6 @@ try {
 		}
 
 		void event_.execute();
-	}
-
-	for await (const dir of componentFiles) {
-		const compInfo = componentInfo(dir.path);
-		if (!compInfo) continue;
-
-		const component = container.resolve<Component>((await import(pathToFileURL(dir.fullPath).href)).default);
-		logger.info(
-			{ command: { name: component.name ?? component.name } },
-			`Registering component handler: ${component.name ?? component.name}`,
-		);
-
-		components.set((component.name ?? compInfo.name).toLowerCase(), component);
 	}
 
 	await client.login();

@@ -1,11 +1,7 @@
+import { transformInteraction, kCommands, type CommandMap, logger } from "@yuudachi/framework";
+import type { Event } from "@yuudachi/framework/types";
 import { ApplicationCommandType, Events, Client } from "discord.js";
 import { injectable, inject } from "tsyringe";
-import type { Component } from "../Component.js";
-import type { Event } from "../Event.js";
-import { transformInteraction } from "../interactions/InteractionOptions.js";
-import { kCommands, kComponents } from "../tokens.js";
-import type { createCommands } from "../util/commands.js";
-import { logger } from "../util/logger.js";
 
 @injectable()
 export default class implements Event {
@@ -13,11 +9,7 @@ export default class implements Event {
 
 	public event = Events.InteractionCreate as const;
 
-	public constructor(
-		public readonly client: Client<true>,
-		@inject(kCommands) public readonly commands: ReturnType<typeof createCommands>,
-		@inject(kComponents) public readonly components: Map<string, Component>,
-	) {}
+	public constructor(public readonly client: Client<true>, @inject(kCommands) public readonly commands: CommandMap) {}
 
 	public execute() {
 		this.client.on(this.event, async (interaction) => {
@@ -25,27 +17,12 @@ export default class implements Event {
 				!interaction.isCommand() &&
 				!interaction.isUserContextMenuCommand() &&
 				!interaction.isMessageContextMenuCommand() &&
-				!interaction.isAutocomplete() &&
-				!interaction.isModalSubmit()
+				!interaction.isAutocomplete()
 			) {
 				return;
 			}
 
 			if (!interaction.inCachedGuild()) {
-				return;
-			}
-
-			if (interaction.isModalSubmit()) {
-				const component = this.components.get(interaction.customId.toLowerCase());
-				if (component) {
-					await component.execute(interaction, null, "en");
-				} else {
-					await interaction.reply({
-						content: `\`🐛\`No handler found for component \`${interaction.customId.toLowerCase()}\``,
-						ephemeral: true,
-					});
-				}
-
 				return;
 			}
 
@@ -62,10 +39,10 @@ export default class implements Event {
 							);
 
 							if (isAutocomplete) {
-								await command.autocomplete(interaction, transformInteraction(interaction.options.data));
+								await command.autocomplete(interaction, transformInteraction(interaction.options.data), "");
 								break;
 							} else {
-								await command.chatInput(interaction, transformInteraction(interaction.options.data));
+								await command.chatInput(interaction, transformInteraction(interaction.options.data), "");
 								break;
 							}
 						}
@@ -76,7 +53,7 @@ export default class implements Event {
 								`Executing message context command ${interaction.commandName}`,
 							);
 
-							await command.messageContext(interaction, transformInteraction(interaction.options.data));
+							await command.messageContext(interaction, transformInteraction(interaction.options.data), "");
 							break;
 						}
 
@@ -86,7 +63,7 @@ export default class implements Event {
 								`Executing user context command ${interaction.commandName}`,
 							);
 
-							await command.userContext(interaction, transformInteraction(interaction.options.data));
+							await command.userContext(interaction, transformInteraction(interaction.options.data), "");
 							break;
 						}
 

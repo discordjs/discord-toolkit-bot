@@ -1,7 +1,7 @@
+import { Command } from "@yuudachi/framework";
+import type { InteractionParam, ArgsParam, CommandMethod } from "@yuudachi/framework/types";
 import { GatewayIntentBits, codeBlock, IntentsBitField, type BitField } from "discord.js";
 import kleur from "kleur";
-import type { ArgsParam, CommandMethod } from "../Command.js";
-import { type InteractionParam, Command } from "../Command.js";
 import type { IntentsLookupContextCommand } from "../interactions/context/intentsLookupContext.js";
 import type { BitfieldLookupCommand } from "../interactions/slash/bitfieldLookup.js";
 import { intents } from "./sub/bitfields/intents.js";

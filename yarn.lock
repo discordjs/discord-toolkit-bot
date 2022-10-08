@@ -855,6 +855,18 @@
     "@typescript-eslint/types" "5.39.0"
     eslint-visitor-keys "^3.3.0"
 
+"@yuudachi/framework@^0.1.1":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@yuudachi/framework/-/framework-0.1.3.tgz#98cc0e4565753793f43f9e45dfdf8638263e4966"
+  integrity sha512-d9/GMwINSz5EuWCEX6FUhiBC5iht7qiHOct6OkpOInQu7azP/20NLgcZ5aY3qkWdasSCccS+8BTry4fayZeLig==
+  dependencies:
+    "@swc/helpers" "^0.4.11"
+    pino "^8.6.1"
+    readdirp "^3.6.0"
+    reflect-metadata "^0.1.13"
+    tsyringe "^4.7.0"
+    type-fest "^3.0.0"
+
 JSONStream@^1.0.4:
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/JSONStream/-/JSONStream-1.3.5.tgz#3208c1f08d3a4d99261ab64f92302bc15e111ca0"
@@ -4048,6 +4060,11 @@ type-fest@^1.0.1, type-fest@^1.2.1, type-fest@^1.2.2:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-1.4.0.tgz#e9fb813fe3bf1744ec359d55d1affefa76f14be1"
   integrity sha512-yGSza74xk0UG8k+pLh5oeoYirvIiWo5t0/o3zHHAO2tRDiZcxWP7fywNlXhqb6/r6sWvwi+RsyQMWhVLe4BVuA==
+
+type-fest@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-3.0.0.tgz#678e2e8d916e3b7dc1c3a6591d399ba3f7521584"
+  integrity sha512-MINvUN5ug9u+0hJDzSZNSnuKXI8M4F5Yvb6SQZ2CYqe7SgKXKOosEcU5R7tRgo85I6eAVBbkVF7TCvB4AUK2xQ==
 
 typescript@^4.6.4, typescript@^4.8.4:
   version "4.8.4"
