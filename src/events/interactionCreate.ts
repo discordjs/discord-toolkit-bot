@@ -1,8 +1,7 @@
-import { transformInteraction, kCommands, type CommandMap } from "@yuudachi/framework";
+import { transformInteraction, kCommands, type CommandMap, logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import { ApplicationCommandType, Events, Client } from "discord.js";
 import { injectable, inject } from "tsyringe";
-import { logger } from "../util/logger.js";
 
 @injectable()
 export default class implements Event {

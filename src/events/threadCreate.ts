@@ -1,11 +1,11 @@
 import { on } from "node:events";
 import { setTimeout as wait } from "node:timers/promises";
+import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import type { ThreadChannel } from "discord.js";
 import { Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
 import { ASSISTCHANNELS } from "../util/constants.js";
-import { logger } from "../util/logger.js";
 
 @injectable()
 export default class implements Event {
