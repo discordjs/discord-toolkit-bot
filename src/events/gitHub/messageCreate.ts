@@ -5,6 +5,7 @@ import type { Event } from "@yuudachi/framework/types";
 import { type Message, Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
 import { handleGithubUrls } from "../../functions/gitHub/handler.js";
+import { ASSISTCHANNELS } from "../../util/constants.js";
 
 @injectable()
 export default class implements Event {
@@ -19,7 +20,7 @@ export default class implements Event {
 			try {
 				if (message.author.bot || !message.inGuild()) continue;
 
-				await wait(1_000);
+				await wait(ASSISTCHANNELS.includes(message.channel.parentId ?? "") ? 2_500 : 1_000);
 
 				await handleGithubUrls(message);
 			} catch (error_) {

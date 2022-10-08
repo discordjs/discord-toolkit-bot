@@ -47,7 +47,6 @@ function stringArrayLength(arr: string[]) {
 export async function handleGithubUrls(message: Message<true>) {
 	const matches = new Set(message.content.matchAll(GitHubUrlRegex));
 	if (!matches) return;
-	console.log(...matches);
 
 	const isOnThread =
 		message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement;
@@ -104,14 +103,17 @@ export async function handleGithubUrls(message: Message<true>) {
 			});
 		}
 
-		if (isOnThread || stringArrayLength(tempContent) + content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
+		if (content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
+			await thread.send(content.join("\n"));
+		} else if (isOnThread || stringArrayLength(tempContent) + content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
 			await thread.send(tempContent.join("\n") || content.join("\n"));
-			if (isOnThread) break;
 
 			tempContent.length = 0;
 		} else {
 			tempContent.push(content.join("\n"));
 		}
+
+		if (isOnThread) break;
 	}
 
 	if (!tempContent.length || !thread || isOnThread) return;
