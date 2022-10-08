@@ -1,4 +1,5 @@
 import process from "node:process";
+import { logger } from "@yuudachi/framework";
 import { Routes, REST } from "discord.js";
 import {
 	SnowflakeInfoCommand,
@@ -7,7 +8,6 @@ import {
 	UserInfoCommand,
 	UserInfoContextCommand,
 } from "./interactions/index.js";
-import { logger } from "./util/logger.js";
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
 

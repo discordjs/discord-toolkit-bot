@@ -1,5 +1,5 @@
+import type { InteractionParam, ArgsParam } from "@yuudachi/framework/types";
 import { codeBlock, inlineCode, PermissionFlagsBits, PermissionsBitField } from "discord.js";
-import type { ArgsParam, InteractionParam } from "../../../Command.js";
 import type { BitfieldLookupCommand } from "../../../interactions/slash/bitfieldLookup.js";
 import { formatBits } from "../../bitfields.js";
 
