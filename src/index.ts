@@ -1,10 +1,9 @@
 import "reflect-metadata";
 import { URL, fileURLToPath, pathToFileURL } from "node:url";
-import { dynamicImport, createCommands, type Command, commandInfo, kCommands } from "@yuudachi/framework";
+import { dynamicImport, createCommands, type Command, commandInfo, kCommands, container } from "@yuudachi/framework";
 import type { CommandPayload, Event } from "@yuudachi/framework/types";
 import { Client, GatewayIntentBits, Options } from "discord.js";
 import readdirp from "readdirp";
-import { container } from "tsyringe";
 import { logger } from "./util/logger.js";
 import { createWebhooks } from "./util/webhooks.js";
 
