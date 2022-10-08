@@ -8,6 +8,7 @@ import {
 	italic,
 	ChannelType,
 } from "discord.js";
+import kleur from "kleur";
 import { request } from "undici";
 import { ellipsis } from "../../util/ellipsis.js";
 import { convertUrlToRawUrl } from "../../util/gitHub.js";
@@ -16,6 +17,32 @@ import { convertUrlToRawUrl } from "../../util/gitHub.js";
 const GitHubUrlRegex = /https:\/\/github.com\/(?<org>.+?)\/(?<repo>.+?)\/blob(?<path>\/[^\n#]+)(?<opts>.+)?/g;
 // eslint-disable-next-line unicorn/no-unsafe-regex
 const GitHubUrlLinesRegex = /^#L(?<start>\d+)(?:-L(?<end>\d+))?/;
+
+const SAFE_BOUNDARY = 10;
+
+function resolveEndLine(startLine: number, endLine: number, isOnThread: boolean) {
+	if (Number.isNaN(endLine)) {
+		return {
+			endLine: startLine,
+			delta: 0,
+		};
+	}
+
+	const delta = Number(endLine) - startLine;
+	return {
+		endLine: delta > 10 && isOnThread ? startLine + 10 : endLine,
+		delta,
+	};
+}
+
+function formatLine(start: number, end: string, index: number, ansi = false) {
+	const line = String(index + start).padEnd(end?.length ?? 1, " ");
+	return ansi ? kleur.cyan(line) : line;
+}
+
+function stringArrayLength(arr: string[]) {
+	return arr.reduce((acc, cur) => acc + cur.length, 0);
+}
 
 export async function handleGithubUrls(message: Message<true>) {
 	const matches = new Set(message.content.matchAll(GitHubUrlRegex));
@@ -37,18 +64,17 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const { start, end } = lines;
 
-		const nStart = Number(start);
-		const delta = end ? Number(end) - nStart : 0;
-		const nEnd = delta > 10 && isOnThread ? nStart + 10 : Number(end);
+		const startLine = Number(start);
+		if (Number.isNaN(startLine)) continue;
 
-		if (Number.isNaN(nStart)) continue;
+		const { endLine: nEnd, delta } = resolveEndLine(startLine, Number(end), isOnThread);
 
 		const url = convertUrlToRawUrl(match[0]!);
 
 		const rewFile = await request(url).then(async (res) => res.body.text());
-		const linesRequested = rewFile.split("\n").slice(nStart - 1, end ? nEnd : nStart);
+		const linesRequested = rewFile.split("\n").slice(startLine - 1, end ? nEnd : startLine);
 
-		const lang = path!.split(".").pop() ?? "text";
+		const lang = path!.split(".").pop() ?? "ansi";
 
 		const content = [
 			`${end ? `Lines ${inlineCode(start!)} to ${inlineCode(end)}` : `Line ${inlineCode(start!)}`} of ${italic(
@@ -56,15 +82,14 @@ export async function handleGithubUrls(message: Message<true>) {
 			)} ${isOnThread && delta > 10 ? "(Limited to 10 lines)" : ""}`,
 		];
 
-		const safeBoundary = 10;
-		const maxLength = isOnThread ? 500 : 2_000 - (content[0]!.length + safeBoundary + lang.length);
+		const maxLength = isOnThread ? 500 : 2_000 - (content[0]!.length + SAFE_BOUNDARY + lang.length);
 
 		content.push(
 			codeBlock(
 				lang,
 				ellipsis(
 					linesRequested
-						.map((line, index) => `${String(index + nStart).padEnd(end?.length ?? 1, " ")} | ${line}`)
+						.map((line, index) => `${formatLine(startLine, end!, index, lang === "ansi")} | ${line}`)
 						.join("\n"),
 					maxLength,
 				),
@@ -79,10 +104,7 @@ export async function handleGithubUrls(message: Message<true>) {
 			});
 		}
 
-		if (
-			isOnThread ||
-			tempContent.reduce((a, b) => a + b.length, 0) + content.join("\n").length + safeBoundary >= 2_000
-		) {
+		if (isOnThread || stringArrayLength(tempContent) + content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
 			await thread.send(tempContent.join("\n") || content.join("\n"));
 			if (isOnThread) break;
 
