@@ -10,68 +10,20 @@ import {
 	italic,
 	ChannelType,
 } from "discord.js";
-import kleur from "kleur";
 import { request } from "undici";
+import { convertUrlToRawUrl, formatLine, resolveLines, stringArrayLength, validateFileSize } from "./utils.js";
+
+const NormalGitHubUrlRegex =
+	// eslint-disable-next-line unicorn/no-unsafe-regex
+	/https:\/\/github\.com\/(?<org>.+?)\/(?<repo>.+?)\/(?:(?:blob)|(?:blame))(?<path>\/[^\s#>]+)(?<opts>[^\s>]+)?/g;
 
 // eslint-disable-next-line unicorn/no-unsafe-regex
-const GitHubUrlRegex = /https:\/\/github\.com\/(?<org>.+?)\/(?<repo>.+?)\/blob(?<path>\/[^\s#>]+)(?<opts>[^\s>]+)?/g;
-// eslint-disable-next-line unicorn/no-unsafe-regex
-const GitHubUrlLinesRegex = /^#L(?<start>\d+)(?:-L(?<end>\d+))?/;
+const GitHubUrlLinesRegex = /^#?[LR](?<start>(?:\d|[^\n-])+)?(?:-[LR](?<end>\d+))?/;
 
 const SAFE_BOUNDARY = 10;
 
-function convertUrlToRawUrl(url: string) {
-	return (
-		url
-			// eslint-disable-next-line prefer-named-capture-group
-			.replace(">", "")
-			.replace("github.com", "raw.githubusercontent.com")
-			.replace("/blob", "")
-	);
-}
-
-function resolveLines(startLine: number, endLine: number, isOnThread: boolean) {
-	if (startLine > endLine || (Number.isNaN(startLine) && !Number.isNaN(endLine))) {
-		// eslint-disable-next-line no-param-reassign
-		[startLine, endLine] = [endLine, startLine];
-	}
-
-	if (startLine < 1) {
-		// eslint-disable-next-line no-param-reassign
-		startLine = 1;
-	}
-
-	if (Number.isNaN(endLine)) {
-		return {
-			startLine,
-			endLine: startLine,
-			delta: 0,
-		};
-	}
-
-	const delta = Number(endLine) - startLine;
-	return {
-		startLine,
-		endLine: delta > 10 && isOnThread ? startLine + 10 : endLine,
-		delta,
-	};
-}
-
-function formatLine(start: number, end: string, index: number, ansi = false) {
-	const line = String(index + start).padEnd(end?.length ?? 1, " ");
-	return ansi ? kleur.cyan(line) : line;
-}
-
-function stringArrayLength(arr: string[]) {
-	return arr.reduce((acc, cur) => acc + cur.length, 0);
-}
-
-function validateFileSize(file: Buffer) {
-	return Buffer.byteLength(file) < 8_000_000;
-}
-
 export async function handleGithubUrls(message: Message<true>) {
-	const matches = new Set(message.content.matchAll(GitHubUrlRegex));
+	const matches = new Set(message.content.matchAll(NormalGitHubUrlRegex));
 	if (!matches) return;
 
 	const isOnThread =
@@ -86,9 +38,10 @@ export async function handleGithubUrls(message: Message<true>) {
 		const lines = opts?.match(GitHubUrlLinesRegex)?.groups;
 
 		const nStart = Number(lines?.start);
-		const fullFile = !lines || Number.isNaN(nStart);
+		const nEnd = Number(lines?.end);
+		const fullFile = !lines || (Number.isNaN(nStart) && Number.isNaN(nEnd));
 
-		const { startLine, endLine, delta } = resolveLines(nStart, Number(lines?.end), isOnThread);
+		const { startLine, endLine, delta } = resolveLines(nStart, nEnd, isOnThread);
 
 		const url = convertUrlToRawUrl(match[0]!);
 
@@ -124,13 +77,19 @@ export async function handleGithubUrls(message: Message<true>) {
 			continue;
 		}
 
-		const { start, end } = lines!;
+		const parsedLines = rawFile.split("\n");
 
-		const linesRequested = rawFile.split("\n").slice(startLine - 1, end ? endLine : startLine);
+		const [safeStartLine, safeEndLine] = [
+			Math.min(startLine, parsedLines.length) - 1,
+			Math.min(endLine ? endLine : startLine, parsedLines.length),
+		];
+		const linesRequested = parsedLines.slice(safeStartLine, safeEndLine);
 
 		const content = [
 			`${
-				end ? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}` : `Line ${inlineCode(start!)}`
+				endLine
+					? `Lines ${inlineCode(String(safeStartLine))} to ${inlineCode(String(safeEndLine))}`
+					: `Line ${inlineCode(String(safeStartLine))}`
 			} of ${italic(`${org}/${repo}${path}`)} ${isOnThread && delta > 10 ? "(Limited to 10 lines)" : ""}`,
 		];
 
@@ -141,10 +100,10 @@ export async function handleGithubUrls(message: Message<true>) {
 				lang,
 				ellipsis(
 					linesRequested
-						.map((line, index) => `${formatLine(startLine, end!, index, lang === "ansi")} | ${line}`)
+						.map((line, index) => `${formatLine(safeStartLine, safeEndLine, index, lang === "ansi")} | ${line}`)
 						.join("\n"),
 					maxLength,
-				),
+				) || "No content",
 			),
 		);
 
