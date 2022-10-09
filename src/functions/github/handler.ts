@@ -14,7 +14,7 @@ import kleur from "kleur";
 import { request } from "undici";
 
 // eslint-disable-next-line unicorn/no-unsafe-regex
-const GitHubUrlRegex = /https:\/\/github.com\/(?<org>.+?)\/(?<repo>.+?)\/blob(?<path>\/[^\n#>]+)(?<opts>.+)?/g;
+const GitHubUrlRegex = /https:\/\/github\.com\/(?<org>.+?)\/(?<repo>.+?)\/blob(?<path>\/[^\s#>]+)(?<opts>[^\s>]+)?/g;
 // eslint-disable-next-line unicorn/no-unsafe-regex
 const GitHubUrlLinesRegex = /^#L(?<start>\d+)(?:-L(?<end>\d+))?/;
 
@@ -54,6 +54,10 @@ function stringArrayLength(arr: string[]) {
 	return arr.reduce((acc, cur) => acc + cur.length, 0);
 }
 
+function validateFileSize(file: Buffer) {
+	return Buffer.byteLength(file) < 8_000_000;
+}
+
 export async function handleGithubUrls(message: Message<true>) {
 	const matches = new Set(message.content.matchAll(GitHubUrlRegex));
 	if (!matches) return;
@@ -81,6 +85,8 @@ export async function handleGithubUrls(message: Message<true>) {
 		});
 
 		if (!rawFile) continue;
+
+		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) continue;
 
 		const lang = path!.split(".").pop() ?? "ansi";
 
