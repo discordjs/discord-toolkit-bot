@@ -30,9 +30,20 @@ function convertUrlToRawUrl(url: string) {
 	);
 }
 
-function resolveEndLine(startLine: number, endLine: number, isOnThread: boolean) {
+function resolveLines(startLine: number, endLine: number, isOnThread: boolean) {
+	if (startLine > endLine || (Number.isNaN(startLine) && !Number.isNaN(endLine))) {
+		// eslint-disable-next-line no-param-reassign
+		[startLine, endLine] = [endLine, startLine];
+	}
+
+	if (startLine < 1) {
+		// eslint-disable-next-line no-param-reassign
+		startLine = 1;
+	}
+
 	if (Number.isNaN(endLine)) {
 		return {
+			startLine,
 			endLine: startLine,
 			delta: 0,
 		};
@@ -40,6 +51,7 @@ function resolveEndLine(startLine: number, endLine: number, isOnThread: boolean)
 
 	const delta = Number(endLine) - startLine;
 	return {
+		startLine,
 		endLine: delta > 10 && isOnThread ? startLine + 10 : endLine,
 		delta,
 	};
@@ -73,10 +85,10 @@ export async function handleGithubUrls(message: Message<true>) {
 		const { org, repo, path, opts } = match.groups!;
 		const lines = opts?.match(GitHubUrlLinesRegex)?.groups;
 
-		const startLine = Number(lines?.start);
-		const fullFile = !lines || Number.isNaN(startLine);
+		const nStart = Number(lines?.start);
+		const fullFile = !lines || Number.isNaN(nStart);
 
-		const { endLine, delta } = resolveEndLine(startLine, Number(lines?.end), isOnThread);
+		const { startLine, endLine, delta } = resolveLines(nStart, Number(lines?.end), isOnThread);
 
 		const url = convertUrlToRawUrl(match[0]!);
 
@@ -118,7 +130,7 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const content = [
 			`${
-				end ? `Lines ${inlineCode(start!)} to ${inlineCode(String(endLine))}` : `Line ${inlineCode(start!)}`
+				end ? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}` : `Line ${inlineCode(start!)}`
 			} of ${italic(`${org}/${repo}${path}`)} ${isOnThread && delta > 10 ? "(Limited to 10 lines)" : ""}`,
 		];
 
