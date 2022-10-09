@@ -13,7 +13,8 @@
 		"start": "env-cmd node --enable-source-maps dist/index.js",
 		"start:dev": "npm run build && npm run dev",
 		"dev": "env-cmd node --enable-source-maps dist/index.js",
-		"deploy:commands": "env-cmd node --enable-source-maps dist/deploy.js"
+		"deploy:commands": "env-cmd node --enable-source-maps dist/deploy.js",
+		"postinstall": "is-ci || husky install"
 	},
 	"type": "module",
 	"main": "dist/index.js",
@@ -51,6 +52,7 @@
 		"eslint": "^8.24.0",
 		"eslint-config-neon": "^0.1.34",
 		"husky": "^8.0.1",
+		"is-ci": "^3.0.1",
 		"lint-staged": "^13.0.3",
 		"prettier": "^2.7.1",
 		"rimraf": "^3.0.2",
