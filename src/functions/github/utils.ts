@@ -65,10 +65,12 @@ export function generateHeader(
 	onThread: boolean,
 	fullFile: boolean,
 ): string {
+	const isRange = !endLine || endLine !== startLine;
+
 	return fullFile
 		? `Full file from ${inlineCode(path)}`
 		: `${
-				endLine
+				isRange
 					? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
 					: `Line ${inlineCode(String(startLine))}`
 		  } of ${italic(path)} ${onThread && delta > 10 ? "(Limited to 10 lines)" : ""}`;
