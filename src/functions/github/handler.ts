@@ -67,7 +67,7 @@ export async function handleGithubUrls(message: Message<true>) {
 		};
 	});
 
-	if (matches.every(Boolean) && message.editable) {
+	if (matches.every(Boolean) && message.deletable) {
 		await message.suppressEmbeds(true);
 	}
 
