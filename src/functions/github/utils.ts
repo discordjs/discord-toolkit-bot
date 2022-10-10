@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
 import kleur from "kleur";
+import { GitHubUrlLinesRegex } from "./regex.js";
 
 export function convertUrlToRawUrl(url: string) {
 	return (
@@ -38,9 +39,9 @@ export function resolveLines(startLine: number, endLine: number, isOnThread: boo
 	};
 }
 
-export function formatLine(start: number, end: number, index: number, ansi = false) {
-	const line = String(index + start).padEnd(String(end || "").length ?? 1, " ");
-	return ansi ? kleur.cyan(line) : line;
+export function formatLine(line: string, start: number, end: number, index: number, ansi = false) {
+	const prefix = String(index + start).padEnd(String(end || "").length ?? 1, " ");
+	return `${ansi ? kleur.cyan(prefix) : prefix} | ${line}`;
 }
 
 export function stringArrayLength(arr: string[]) {
@@ -49,4 +50,8 @@ export function stringArrayLength(arr: string[]) {
 
 export function validateFileSize(file: Buffer) {
 	return Buffer.byteLength(file) < 8_000_000;
+}
+
+export function resolveFileLanguage(url: string) {
+	return url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
 }

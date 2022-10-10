@@ -14,26 +14,21 @@ import {
 } from "discord.js";
 import { request } from "undici";
 import { URL_REGEX } from "../../util/constants.js";
-import { formatLine, resolveLines, stringArrayLength, validateFileSize } from "./utils.js";
-
-const NormalGitHubUrlRegex =
-	// eslint-disable-next-line unicorn/no-unsafe-regex
-	/https:\/\/github\.com\/(?<org>.+?)\/(?<repo>.+?)\/(?:(?:blob)|(?:blame))(?<path>\/[^\s#>]+)(?<opts>[^\s>]+)?/g;
-
-const GistGitHubUrlRegex =
-	// eslint-disable-next-line unicorn/no-unsafe-regex
-	/https:\/\/gist\.github\.com\/(?<user>.+?)\/(?<id>[^\s#>]+)#file-(?<opts>[^\s>]+)/g;
-
-// eslint-disable-next-line unicorn/no-unsafe-regex
-const GitHubUrlLinesRegex = /[#-]?[LR](?<start>(?:\d|[^\n->])+)?(?:-[LR](?<end>\d+))?/;
+import { GistGitHubUrlRegex, GitHubUrlLinesRegex, NormalGitHubUrlRegex } from "./regex.js";
+import { formatLine, resolveFileLanguage, resolveLines, stringArrayLength, validateFileSize } from "./utils.js";
 
 const SAFE_BOUNDARY = 10;
 
+enum GitHubUrlType {
+	Normal,
+	Gist,
+	Diff,
+}
+
 const validators = [
 	{
-		type: "github",
+		type: GitHubUrlType.Normal,
 		regex: NormalGitHubUrlRegex,
-		predicate: (url: string) => url.match(NormalGitHubUrlRegex),
 		converter: (url: string): string =>
 			url
 				.replace(">", "")
@@ -41,9 +36,8 @@ const validators = [
 				.replace(/\/(?:blob|(?:blame))/, ""),
 	},
 	{
-		type: "gist",
+		type: GitHubUrlType.Gist,
 		regex: GistGitHubUrlRegex,
-		predicate: (url: string) => url.match(GistGitHubUrlRegex),
 		converter: (url: string): string | null => {
 			// eslint-disable-next-line unicorn/no-unsafe-regex
 			const { user, id, opts } = new RegExp(GistGitHubUrlRegex, "").exec(url.replace(/(?:-L\d+)+/, ""))!.groups!;
@@ -64,8 +58,8 @@ export async function handleGithubUrls(message: Message<true>) {
 	const urls = new Set(message.content.matchAll(URL_REGEX));
 	if (!urls) return;
 
-	const matches = [...urls].map(([url]) => {
-		const match = validators.find((validator) => validator.predicate(url!));
+	const matches = Array.from(urls).map(([url]) => {
+		const match = validators.find((validator) => validator.regex.exec(url!));
 		if (!match) return null;
 
 		return {
@@ -74,7 +68,7 @@ export async function handleGithubUrls(message: Message<true>) {
 		};
 	});
 
-	if (urls.size === matches.filter(Boolean).length) {
+	if (matches.every(Boolean)) {
 		await message.suppressEmbeds(true);
 		await wait(500);
 	}
@@ -91,29 +85,24 @@ export async function handleGithubUrls(message: Message<true>) {
 		const { opts } = match.regexMatch!.groups!;
 		const lines = opts?.match(GitHubUrlLinesRegex)?.groups;
 
-		const isGist = match.type === "gist";
-
 		const path = new URL(match.regexMatch![0]!).pathname;
 
-		const nStart = Number(lines?.start);
-		const nEnd = Number(lines?.end);
+		const [nStart, nEnd] = [Number(lines?.start), Number(lines?.end)];
 		const fullFile = !lines || (Number.isNaN(nStart) && Number.isNaN(nEnd));
 
 		const { startLine, endLine, delta } = resolveLines(nStart, nEnd, isOnThread);
 
 		const url = match.converter(match.regexMatch[0]!);
-
 		if (!url) continue;
 
 		const rawFile = await request(url).then(async (res) => {
 			return res.statusCode === 200 ? res.body.text() : null;
 		});
-
 		if (!rawFile) continue;
 
 		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) continue;
 
-		const lang = url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
+		const lang = resolveFileLanguage(url);
 
 		if (!thread) {
 			thread = await message.startThread({
@@ -129,7 +118,7 @@ export async function handleGithubUrls(message: Message<true>) {
 				files: [
 					{
 						attachment: Buffer.from(rawFile),
-						name: isGist ? `${path}.${lang}` : path,
+						name: match.type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
 					},
 				],
 			});
@@ -160,7 +149,7 @@ export async function handleGithubUrls(message: Message<true>) {
 				lang,
 				ellipsis(
 					linesRequested
-						.map((line, index) => `${formatLine(safeStartLine, safeEndLine, index, lang === "ansi")} | ${line}`)
+						.map((line, index) => formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi"))
 						.join("\n"),
 					maxLength,
 				) || "No content",
