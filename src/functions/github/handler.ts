@@ -1,5 +1,4 @@
 import { Buffer } from "node:buffer";
-import { setTimeout as wait } from "node:timers/promises";
 import { URL } from "node:url";
 import { ellipsis } from "@yuudachi/framework";
 import type { VoiceChannel } from "discord.js";
@@ -56,7 +55,7 @@ const validators = [
 
 export async function handleGithubUrls(message: Message<true>) {
 	const urls = new Set(message.content.matchAll(URL_REGEX));
-	if (!urls) return;
+	if (!urls.size) return;
 
 	const matches = Array.from(urls).map(([url]) => {
 		const match = validators.find((validator) => validator.regex.exec(url!));
@@ -68,9 +67,8 @@ export async function handleGithubUrls(message: Message<true>) {
 		};
 	});
 
-	if (matches.every(Boolean)) {
+	if (matches.every(Boolean) && message.editable) {
 		await message.suppressEmbeds(true);
-		await wait(500);
 	}
 
 	const isOnThread =
@@ -104,6 +102,8 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const lang = resolveFileLanguage(url);
 
+		const hasCodeBlock = rawFile.includes("```");
+
 		if (!thread) {
 			thread = await message.startThread({
 				name: `GitHub Lines for this message`,
@@ -112,7 +112,16 @@ export async function handleGithubUrls(message: Message<true>) {
 			});
 		}
 
+		const parsedLines = rawFile.split("\n");
+
+		const [safeStartLine, safeEndLine] = [
+			Math.min(startLine, parsedLines.length),
+			Math.min(endLine ? endLine : startLine, parsedLines.length),
+		];
+
 		if (fullFile) {
+			// const content = fullFile ? `Full file from ${inlineCode(path)}` : "";
+
 			await thread.send({
 				content: `Full file from ${inlineCode(path)}`,
 				files: [
@@ -126,13 +135,20 @@ export async function handleGithubUrls(message: Message<true>) {
 			continue;
 		}
 
-		const parsedLines = rawFile.split("\n");
-
-		const [safeStartLine, safeEndLine] = [
-			Math.min(startLine, parsedLines.length),
-			Math.min(endLine ? endLine : startLine, parsedLines.length),
-		];
 		const linesRequested = parsedLines.slice(safeStartLine - 1, safeEndLine);
+
+		if (hasCodeBlock) {
+			await thread.send({
+				content: `Full file from ${inlineCode(path)}`,
+				files: [
+					{
+						attachment: Buffer.from(parsedLines.join("\n")),
+						name: match.type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
+					},
+				],
+			});
+			continue;
+		}
 
 		const content = [
 			`${
