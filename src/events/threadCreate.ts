@@ -21,7 +21,7 @@ export default class implements Event {
 		>) {
 			try {
 				await wait(2_000);
-				if (!newlyCreated || !ASSISTCHANNELS.includes(thread.parentId ?? "")) return;
+				if (!newlyCreated || !ASSISTCHANNELS.includes(thread.parentId ?? "")) continue;
 
 				await thread.send({
 					content: [
