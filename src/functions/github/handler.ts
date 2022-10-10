@@ -1,4 +1,6 @@
 import { Buffer } from "node:buffer";
+import { setTimeout as wait } from "node:timers/promises";
+import { URL } from "node:url";
 import { ellipsis } from "@yuudachi/framework";
 import type { VoiceChannel } from "discord.js";
 import {
@@ -11,20 +13,71 @@ import {
 	ChannelType,
 } from "discord.js";
 import { request } from "undici";
-import { convertUrlToRawUrl, formatLine, resolveLines, stringArrayLength, validateFileSize } from "./utils.js";
+import { URL_REGEX } from "../../util/constants.js";
+import { formatLine, resolveLines, stringArrayLength, validateFileSize } from "./utils.js";
 
 const NormalGitHubUrlRegex =
 	// eslint-disable-next-line unicorn/no-unsafe-regex
 	/https:\/\/github\.com\/(?<org>.+?)\/(?<repo>.+?)\/(?:(?:blob)|(?:blame))(?<path>\/[^\s#>]+)(?<opts>[^\s>]+)?/g;
 
+const GistGitHubUrlRegex =
+	// eslint-disable-next-line unicorn/no-unsafe-regex
+	/https:\/\/gist\.github\.com\/(?<user>.+?)\/(?<id>[^\s#>]+)#file-(?<opts>[^\s>]+)/g;
+
 // eslint-disable-next-line unicorn/no-unsafe-regex
-const GitHubUrlLinesRegex = /^#?[LR](?<start>(?:\d|[^\n-])+)?(?:-[LR](?<end>\d+))?/;
+const GitHubUrlLinesRegex = /[#-]?[LR](?<start>(?:\d|[^\n->])+)?(?:-[LR](?<end>\d+))?/;
 
 const SAFE_BOUNDARY = 10;
 
+const validators = [
+	{
+		type: "github",
+		regex: NormalGitHubUrlRegex,
+		predicate: (url: string) => url.match(NormalGitHubUrlRegex),
+		converter: (url: string): string =>
+			url
+				.replace(">", "")
+				.replace("github.com", "raw.githubusercontent.com")
+				.replace(/\/(?:blob|(?:blame))/, ""),
+	},
+	{
+		type: "gist",
+		regex: GistGitHubUrlRegex,
+		predicate: (url: string) => url.match(GistGitHubUrlRegex),
+		converter: (url: string): string | null => {
+			// eslint-disable-next-line unicorn/no-unsafe-regex
+			const { user, id, opts } = new RegExp(GistGitHubUrlRegex, "").exec(url.replace(/(?:-L\d+)+/, ""))!.groups!;
+
+			if (!user || !id || !opts) {
+				return null;
+			}
+
+			const fileName = opts.split("-").slice(0, -1).join("-");
+			const extension = opts.split("-").pop();
+
+			return `https://gist.githubusercontent.com/${user}/${id}/raw/${fileName}.${extension}`;
+		},
+	},
+];
+
 export async function handleGithubUrls(message: Message<true>) {
-	const matches = new Set(message.content.matchAll(NormalGitHubUrlRegex));
-	if (!matches) return;
+	const urls = new Set(message.content.matchAll(URL_REGEX));
+	if (!urls) return;
+
+	const matches = [...urls].map(([url]) => {
+		const match = validators.find((validator) => validator.predicate(url!));
+		if (!match) return null;
+
+		return {
+			regexMatch: new RegExp(match.regex, "").exec(url!),
+			...match,
+		};
+	});
+
+	if (urls.size === matches.filter(Boolean).length) {
+		await message.suppressEmbeds(true);
+		await wait(500);
+	}
 
 	const isOnThread =
 		message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement;
@@ -34,8 +87,13 @@ export async function handleGithubUrls(message: Message<true>) {
 	const tempContent: string[] = [];
 
 	for (const match of matches) {
-		const { org, repo, path, opts } = match.groups!;
+		if (!match || !match.regexMatch) continue;
+		const { opts } = match.regexMatch!.groups!;
 		const lines = opts?.match(GitHubUrlLinesRegex)?.groups;
+
+		const isGist = match.type === "gist";
+
+		const path = new URL(match.regexMatch![0]!).pathname;
 
 		const nStart = Number(lines?.start);
 		const nEnd = Number(lines?.end);
@@ -43,7 +101,9 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const { startLine, endLine, delta } = resolveLines(nStart, nEnd, isOnThread);
 
-		const url = convertUrlToRawUrl(match[0]!);
+		const url = match.converter(match.regexMatch[0]!);
+
+		if (!url) continue;
 
 		const rawFile = await request(url).then(async (res) => {
 			return res.statusCode === 200 ? res.body.text() : null;
@@ -53,7 +113,7 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) continue;
 
-		const lang = path!.split(".").pop() ?? "ansi";
+		const lang = url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
 
 		if (!thread) {
 			thread = await message.startThread({
@@ -65,11 +125,11 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		if (fullFile) {
 			await thread.send({
-				content: `Full file from ${inlineCode(`${org}/${repo}${path}`)}`,
+				content: `Full file from ${inlineCode(path)}`,
 				files: [
 					{
 						attachment: Buffer.from(rawFile),
-						name: `${repo}-${path}`,
+						name: isGist ? `${path}.${lang}` : path,
 					},
 				],
 			});
@@ -80,17 +140,17 @@ export async function handleGithubUrls(message: Message<true>) {
 		const parsedLines = rawFile.split("\n");
 
 		const [safeStartLine, safeEndLine] = [
-			Math.min(startLine, parsedLines.length) - 1,
+			Math.min(startLine, parsedLines.length),
 			Math.min(endLine ? endLine : startLine, parsedLines.length),
 		];
-		const linesRequested = parsedLines.slice(safeStartLine, safeEndLine);
+		const linesRequested = parsedLines.slice(safeStartLine - 1, safeEndLine);
 
 		const content = [
 			`${
 				endLine
 					? `Lines ${inlineCode(String(safeStartLine))} to ${inlineCode(String(safeEndLine))}`
 					: `Line ${inlineCode(String(safeStartLine))}`
-			} of ${italic(`${org}/${repo}${path}`)} ${isOnThread && delta > 10 ? "(Limited to 10 lines)" : ""}`,
+			} of ${italic(path)} ${isOnThread && delta > 10 ? "(Limited to 10 lines)" : ""}`,
 		];
 
 		const maxLength = isOnThread ? 500 : 2_000 - (content[0]!.length + SAFE_BOUNDARY + lang.length);
