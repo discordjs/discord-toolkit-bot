@@ -1,20 +1,26 @@
 import { Buffer } from "node:buffer";
 import { URL } from "node:url";
 import { ellipsis } from "@yuudachi/framework";
-import type { VoiceChannel } from "discord.js";
 import {
 	type AnyThreadChannel,
 	type Message,
+	type VoiceChannel,
+	PermissionFlagsBits,
 	ThreadAutoArchiveDuration,
 	codeBlock,
-	inlineCode,
-	italic,
 	ChannelType,
 } from "discord.js";
 import { request } from "undici";
 import { URL_REGEX } from "../../util/constants.js";
 import { GistGitHubUrlRegex, GitHubUrlLinesRegex, NormalGitHubUrlRegex } from "./regex.js";
-import { formatLine, resolveFileLanguage, resolveLines, stringArrayLength, validateFileSize } from "./utils.js";
+import {
+	formatLine,
+	generateHeader,
+	resolveFileLanguage,
+	resolveLines,
+	stringArrayLength,
+	validateFileSize,
+} from "./utils.js";
 
 const SAFE_BOUNDARY = 10;
 
@@ -67,10 +73,15 @@ export async function handleGithubUrls(message: Message<true>) {
 		};
 	});
 
-	const isOnThread =
-		message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement;
+	const isOnThread = message.channel
+		.permissionsFor(message.guild!.members.me!)!
+		.has(PermissionFlagsBits.CreatePublicThreads)
+		? message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement
+		: true;
 
-	let thread: AnyThreadChannel<boolean> | VoiceChannel | null = isOnThread ? message.channel : null;
+	let thread: AnyThreadChannel<boolean> | VoiceChannel | null = isOnThread
+		? (message.channel as AnyThreadChannel<boolean> | VoiceChannel)
+		: null;
 
 	const tempContent: string[] = [];
 
@@ -98,8 +109,6 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const lang = resolveFileLanguage(url);
 
-		const hasCodeBlock = rawFile.includes("```");
-
 		if (!thread) {
 			thread = await message.startThread({
 				name: `GitHub Lines for this message`,
@@ -115,48 +124,29 @@ export async function handleGithubUrls(message: Message<true>) {
 			Math.min(endLine ? endLine : startLine, parsedLines.length),
 		];
 
-		if (fullFile) {
-			// const content = fullFile ? `Full file from ${inlineCode(path)}` : "";
-
-			await thread.send({
-				content: `Full file from ${inlineCode(path)}`,
-				files: [
-					{
-						attachment: Buffer.from(rawFile),
-						name: match.type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
-					},
-				],
-			});
-
-			continue;
-		}
-
 		const linesRequested = parsedLines.slice(safeStartLine - 1, safeEndLine);
+		const hasCodeBlock = linesRequested.some((line) => line.includes("```"));
+		const header = generateHeader(safeStartLine, safeEndLine, path, delta, isOnThread, fullFile);
 
-		if (hasCodeBlock) {
+		if (fullFile || hasCodeBlock) {
 			await thread.send({
-				content: `Full file from ${inlineCode(path)}`,
+				content: header,
 				files: [
 					{
-						attachment: Buffer.from(parsedLines.join("\n")),
+						attachment: Buffer.from(hasCodeBlock ? linesRequested.join("\n") : rawFile),
 						name: match.type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
 					},
 				],
 			});
+
+			if (isOnThread) break;
 			continue;
 		}
+
+		const maxLength = isOnThread ? 500 : 2_000 - (header.length + SAFE_BOUNDARY + lang.length);
 
 		const content = [
-			`${
-				endLine
-					? `Lines ${inlineCode(String(safeStartLine))} to ${inlineCode(String(safeEndLine))}`
-					: `Line ${inlineCode(String(safeStartLine))}`
-			} of ${italic(path)} ${isOnThread && delta > 10 ? "(Limited to 10 lines)" : ""}`,
-		];
-
-		const maxLength = isOnThread ? 500 : 2_000 - (content[0]!.length + SAFE_BOUNDARY + lang.length);
-
-		content.push(
+			header,
 			codeBlock(
 				lang,
 				ellipsis(
@@ -166,16 +156,16 @@ export async function handleGithubUrls(message: Message<true>) {
 					maxLength,
 				) || "No content",
 			),
-		);
+		].join("\n");
 
-		if (content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
-			await thread.send(content.join("\n"));
-		} else if (isOnThread || stringArrayLength(tempContent) + content.join("\n").length + SAFE_BOUNDARY >= 2_000) {
-			await thread.send(tempContent.join("\n") || content.join("\n"));
+		if (content.length + SAFE_BOUNDARY >= 2_000) {
+			await thread.send(content);
+		} else if (isOnThread || stringArrayLength(tempContent) + content.length + SAFE_BOUNDARY >= 2_000) {
+			await thread.send(tempContent.join("\n") || content);
 
 			tempContent.length = 0;
 		} else {
-			tempContent.push(content.join("\n"));
+			tempContent.push(content);
 		}
 
 		if (isOnThread) break;

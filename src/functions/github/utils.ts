@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { inlineCode, italic } from "discord.js";
 import kleur from "kleur";
 import { GitHubUrlLinesRegex } from "./regex.js";
 
@@ -54,4 +55,21 @@ export function validateFileSize(file: Buffer) {
 
 export function resolveFileLanguage(url: string) {
 	return url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
+}
+
+export function generateHeader(
+	startLine: number,
+	endLine: number | null,
+	path: string,
+	delta: number,
+	onThread: boolean,
+	fullFile: boolean,
+): string {
+	return fullFile
+		? `Full file from ${inlineCode(path)}`
+		: `${
+				endLine
+					? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
+					: `Line ${inlineCode(String(startLine))}`
+		  } of ${italic(path)} ${onThread && delta > 10 ? "(Limited to 10 lines)" : ""}`;
 }
