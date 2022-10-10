@@ -67,10 +67,6 @@ export async function handleGithubUrls(message: Message<true>) {
 		};
 	});
 
-	if (matches.every(Boolean) && message.deletable) {
-		await message.suppressEmbeds(true);
-	}
-
 	const isOnThread =
 		message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement;
 
