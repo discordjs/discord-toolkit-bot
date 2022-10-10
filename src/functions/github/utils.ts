@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { escapeMarkdown } from "discord.js";
 import kleur from "kleur";
 import { GitHubUrlLinesRegex } from "./regex.js";
 
@@ -41,7 +42,7 @@ export function resolveLines(startLine: number, endLine: number, isOnThread: boo
 
 export function formatLine(line: string, start: number, end: number, index: number, ansi = false) {
 	const prefix = String(index + start).padEnd(String(end || "").length ?? 1, " ");
-	return `${ansi ? kleur.cyan(prefix) : prefix} | ${line}`;
+	return `${ansi ? kleur.cyan(prefix) : prefix} | ${escapeMarkdown(line)}`;
 }
 
 export function stringArrayLength(arr: string[]) {

@@ -21,6 +21,9 @@ const client = new Client({
 		StageInstanceManager: 10,
 		VoiceStateManager: 10,
 	}),
+	allowedMentions: {
+		parse: [],
+	},
 }).setMaxListeners(20);
 container.register(Client, { useValue: client });
 
