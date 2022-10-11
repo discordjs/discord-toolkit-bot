@@ -3,6 +3,16 @@ import { inlineCode, italic } from "discord.js";
 import kleur from "kleur";
 import { GitHubUrlLinesRegex } from "./regex.js";
 
+type GenerateHeaderOptions = {
+	delta: number;
+	ellipsed?: boolean;
+	endLine: number | null;
+	fullFile: boolean;
+	onThread: boolean;
+	path: string;
+	startLine: number;
+};
+
 export function convertUrlToRawUrl(url: string) {
 	return (
 		url
@@ -45,10 +55,6 @@ export function formatLine(line: string, start: number, end: number, index: numb
 	return `${ansi ? kleur.cyan(prefix) : prefix} | ${line}`;
 }
 
-export function stringArrayLength(arr: string[]) {
-	return arr.reduce((acc, cur) => acc + cur.length, 0);
-}
-
 export function validateFileSize(file: Buffer) {
 	return Buffer.byteLength(file) < 8_000_000;
 }
@@ -57,15 +63,19 @@ export function resolveFileLanguage(url: string) {
 	return url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
 }
 
-export function generateHeader(
-	startLine: number,
-	endLine: number | null,
-	path: string,
-	delta: number,
-	onThread: boolean,
-	fullFile: boolean,
-): string {
+export function generateHeader(options: GenerateHeaderOptions): string {
+	const { startLine, delta, ellipsed, endLine, path, fullFile, onThread } = options;
 	const isRange = !endLine || endLine !== startLine;
+
+	const flags = [];
+
+	if (onThread && delta > 10) {
+		flags.push("(Limited to 10 lines)");
+	}
+
+	if (ellipsed) {
+		flags.push("(Limited to 2000 characters)");
+	}
 
 	return fullFile
 		? `Full file from ${inlineCode(path)}`
@@ -73,5 +83,5 @@ export function generateHeader(
 				isRange
 					? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
 					: `Line ${inlineCode(String(startLine))}`
-		  } of ${italic(path)} ${onThread && delta > 10 ? "(Limited to 10 lines)" : ""}`;
+		  } of ${italic(path)} ${flags.join(" ")}`;
 }
