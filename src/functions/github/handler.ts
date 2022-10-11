@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { URL } from "node:url";
-import { ellipsis } from "@yuudachi/framework";
+import { logger } from "@yuudachi/framework";
 import {
 	type AnyThreadChannel,
 	type Message,
@@ -11,18 +11,12 @@ import {
 	ChannelType,
 } from "discord.js";
 import { request } from "undici";
+import { arrayEllipsis, stringArrayLength } from "../../util/array.js";
 import { URL_REGEX } from "../../util/constants.js";
 import { GistGitHubUrlRegex, GitHubUrlLinesRegex, NormalGitHubUrlRegex } from "./regex.js";
-import {
-	formatLine,
-	generateHeader,
-	resolveFileLanguage,
-	resolveLines,
-	stringArrayLength,
-	validateFileSize,
-} from "./utils.js";
+import { formatLine, generateHeader, resolveFileLanguage, resolveLines, validateFileSize } from "./utils.js";
 
-const SAFE_BOUNDARY = 10;
+const SAFE_BOUNDARY = 50;
 
 enum GitHubUrlType {
 	Normal,
@@ -79,6 +73,18 @@ export async function handleGithubUrls(message: Message<true>) {
 		? message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement
 		: true;
 
+	logger.info(
+		{
+			urls: matches.filter(Boolean).map((match) => ({
+				type: GitHubUrlType[match!.type] ?? "Unknown type",
+				url: match!.regexMatch![0] ?? "Unknown url",
+			})),
+			user: message.author.id,
+			isOnThread,
+		},
+		"GitHub URL(s) detected",
+	);
+
 	let thread: AnyThreadChannel<boolean> | VoiceChannel | null = isOnThread
 		? (message.channel as AnyThreadChannel<boolean> | VoiceChannel)
 		: null;
@@ -105,7 +111,18 @@ export async function handleGithubUrls(message: Message<true>) {
 		});
 		if (!rawFile) continue;
 
-		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) continue;
+		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) {
+			logger.info(
+				{
+					file: {
+						url,
+						user: message.author.id,
+					},
+				},
+				"File too large to be sent",
+			);
+			continue;
+		}
 
 		const lang = resolveFileLanguage(url);
 
@@ -125,12 +142,20 @@ export async function handleGithubUrls(message: Message<true>) {
 		];
 
 		const linesRequested = parsedLines.slice(safeStartLine - 1, safeEndLine);
+
 		const hasCodeBlock = linesRequested.some((line) => line.includes("```"));
-		const header = generateHeader(safeStartLine, safeEndLine, path, delta, isOnThread, fullFile);
+		const preHeader = generateHeader({
+			startLine: safeStartLine,
+			endLine: safeEndLine,
+			path,
+			delta,
+			onThread: isOnThread,
+			fullFile,
+		});
 
 		if (fullFile || hasCodeBlock) {
 			await thread.send({
-				content: header,
+				content: preHeader,
 				files: [
 					{
 						attachment: Buffer.from(hasCodeBlock ? linesRequested.join("\n") : rawFile),
@@ -143,34 +168,45 @@ export async function handleGithubUrls(message: Message<true>) {
 			continue;
 		}
 
-		const maxLength = isOnThread ? 500 : 2_000 - (header.length + SAFE_BOUNDARY + lang.length);
+		const maxLength = isOnThread ? 500 : 2_000 - (preHeader.length + SAFE_BOUNDARY + lang.length);
 
-		const content = [
-			header,
-			codeBlock(
-				lang,
-				ellipsis(
-					linesRequested
-						.map((line, index) => formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi"))
-						.join("\n"),
-					maxLength,
-				) || "No content",
-			),
-		].join("\n");
+		const safeLinesRequested = arrayEllipsis(
+			linesRequested.map((line, index) => formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi")),
+			maxLength,
+		);
+
+		const header = generateHeader({
+			startLine: safeStartLine,
+			endLine: safeLinesRequested.length + safeStartLine - 1,
+			path,
+			delta,
+			onThread: isOnThread,
+			fullFile,
+			ellipsed: safeLinesRequested.length !== linesRequested.length,
+		});
+
+		const content = [header, codeBlock(lang, safeLinesRequested.join("\n") || "No content")].join("\n");
+
+		console.log(content);
 
 		if (content.length + SAFE_BOUNDARY >= 2_000) {
+			console.log("Too long");
 			await thread.send(content);
 		} else if (isOnThread || stringArrayLength(tempContent) + content.length + SAFE_BOUNDARY >= 2_000) {
+			console.log("Too long for thread");
 			await thread.send(tempContent.join("\n") || content);
 
 			tempContent.length = 0;
+			if (content.length && !tempContent.join("\n")) tempContent.push(content);
 		} else {
+			console.log("Adding to temp content");
 			tempContent.push(content);
 		}
 
 		if (isOnThread) break;
 	}
 
+	console.log("Sending temp content");
 	if (!tempContent.length || !thread || isOnThread) return;
 	await thread.send(tempContent.join("\n"));
 }
