@@ -187,26 +187,20 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		const content = [header, codeBlock(lang, safeLinesRequested.join("\n") || "No content")].join("\n");
 
-		console.log(content);
-
 		if (content.length + SAFE_BOUNDARY >= 2_000) {
-			console.log("Too long");
 			await thread.send(content);
 		} else if (isOnThread || stringArrayLength(tempContent) + content.length + SAFE_BOUNDARY >= 2_000) {
-			console.log("Too long for thread");
 			await thread.send(tempContent.join("\n") || content);
 
 			tempContent.length = 0;
 			if (content.length && !tempContent.join("\n")) tempContent.push(content);
 		} else {
-			console.log("Adding to temp content");
 			tempContent.push(content);
 		}
 
 		if (isOnThread) break;
 	}
 
-	console.log("Sending temp content");
 	if (!tempContent.length || !thread || isOnThread) return;
 	await thread.send(tempContent.join("\n"));
 }
