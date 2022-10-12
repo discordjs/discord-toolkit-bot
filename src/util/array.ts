@@ -18,6 +18,7 @@ export function truncateArrayJoin(arr: string[], maxLength: number): string[] {
 }
 
 export function removeArrayTrailingSpaces(lines: string[]) {
-	const minimumSpaces = Math.min(...lines.filter(Boolean).map((line) => /^\t+/.exec(line)?.[0]?.length ?? 0));
+	// eslint-disable-next-line unicorn/no-unsafe-regex
+	const minimumSpaces = Math.min(...lines.filter(Boolean).map((line) => /^(?:\t|\s{2})+/.exec(line)?.[0]?.length ?? 0));
 	return lines.map((line) => line.slice(minimumSpaces));
 }
