@@ -14,15 +14,24 @@ type GenerateHeaderOptions = {
 };
 
 export function convertUrlToRawUrl(url: string) {
-	return (
-		url
-			.replace(">", "")
-			.replace("github.com", "raw.githubusercontent.com")
-			.replace(/\/(?:blob|(?:blame))/, "")
-	);
+	return url
+		.replace(">", "")
+		.replace("github.com", "raw.githubusercontent.com")
+		.replace(/\/(?:blob|(?:blame))/, "");
 }
 
-export function resolveLines(startLine: number, endLine: number, isOnThread: boolean) {
+type LineOpts = {
+	end?: number;
+	start?: number;
+};
+
+export function resolveLines(opts: string | undefined, isOnThread: boolean) {
+	const lines = opts?.match(GitHubUrlLinesRegex)?.groups as LineOpts | undefined;
+	let [startLine, endLine] = [Number(lines?.start), Number(lines?.end)];
+
+	if (!lines || (Number.isNaN(startLine) && Number.isNaN(endLine)))
+		return { fullFile: true, startLine: 0, endLine: null, delta: 0 };
+
 	if (startLine > endLine || (Number.isNaN(startLine) && !Number.isNaN(endLine))) {
 		// eslint-disable-next-line no-param-reassign
 		[startLine, endLine] = [endLine, startLine];
@@ -38,6 +47,7 @@ export function resolveLines(startLine: number, endLine: number, isOnThread: boo
 			startLine,
 			endLine: null,
 			delta: 0,
+			fullFile: false,
 		};
 	}
 
@@ -46,6 +56,7 @@ export function resolveLines(startLine: number, endLine: number, isOnThread: boo
 		startLine,
 		endLine: delta > 10 && isOnThread ? startLine + 10 : endLine,
 		delta,
+		fullFile: false,
 	};
 }
 

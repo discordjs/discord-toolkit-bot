@@ -11,18 +11,26 @@ import {
 	ChannelType,
 } from "discord.js";
 import { request } from "undici";
-import { arrayEllipsis, stringArrayLength } from "../../util/array.js";
+import { truncateArrayJoin, stringArrayLength, removeArrayTrailingSpaces } from "../../util/array.js";
 import { URL_REGEX } from "../../util/constants.js";
-import { GistGitHubUrlRegex, GitHubUrlLinesRegex, NormalGitHubUrlRegex } from "./regex.js";
+import { GistGitHubUrlRegex, NormalGitHubUrlRegex } from "./regex.js";
 import { formatLine, generateHeader, resolveFileLanguage, resolveLines, validateFileSize } from "./utils.js";
 
-const SAFE_BOUNDARY = 50;
+const SAFE_BOUNDARY = 100;
 
 enum GitHubUrlType {
 	Normal,
 	Gist,
 	Diff,
 }
+
+type MatchResult = {
+	converter(url: string): string | null;
+	opts: string | undefined;
+	regex: RegExp;
+	type: GitHubUrlType;
+	url: string;
+};
 
 const validators = [
 	{
@@ -57,18 +65,24 @@ export async function handleGithubUrls(message: Message<true>) {
 	const urls = new Set(message.content.matchAll(URL_REGEX));
 	if (!urls.size) return;
 
-	const matches = Array.from(urls).map(([url]) => {
-		const match = validators.find((validator) => validator.regex.exec(url!));
-		if (!match) return null;
+	const matches = Array.from(urls)
+		.map(([url]) => {
+			const match = validators.find((validator) => validator.regex.exec(url!));
+			if (!match) return null;
 
-		const regexMatch = match.regex.exec(url!);
-		if (!regexMatch) return null;
+			const regexMatch = match.regex.exec(url!);
+			const { opts } = regexMatch!.groups!;
+			if (!regexMatch || !regexMatch[0]) return null;
 
-		return {
-			regexMatch,
-			...match,
-		};
-	});
+			return {
+				url: regexMatch[0],
+				opts,
+				...match,
+			};
+		})
+		.filter(Boolean) as MatchResult[];
+
+	if (!matches.length) return;
 
 	const isOnThread = message.channel
 		.permissionsFor(message.guild!.members.me!)!
@@ -78,9 +92,9 @@ export async function handleGithubUrls(message: Message<true>) {
 
 	logger.info(
 		{
-			urls: matches.filter(Boolean).map((match) => ({
+			urls: matches.map((match) => ({
 				type: GitHubUrlType[match!.type] ?? "Unknown type",
-				url: match!.regexMatch![0] ?? "Unknown url",
+				url: match!.url ?? "Unknown url",
 			})),
 			user: message.author.id,
 			isOnThread,
@@ -94,31 +108,22 @@ export async function handleGithubUrls(message: Message<true>) {
 
 	const tempContent: string[] = [];
 
-	for (const match of matches) {
-		if (!match || !match.regexMatch) continue;
-		const { opts } = match.regexMatch!.groups!;
-		const lines = opts?.match(GitHubUrlLinesRegex)?.groups;
+	for (const { url, opts, converter, type } of matches) {
+		const rawUrl = converter(url);
+		if (!rawUrl) continue;
 
-		const path = new URL(match.regexMatch![0]!).pathname;
-
-		const [nStart, nEnd] = [Number(lines?.start), Number(lines?.end)];
-		const fullFile = !lines || (Number.isNaN(nStart) && Number.isNaN(nEnd));
-
-		const { startLine, endLine, delta } = resolveLines(nStart, nEnd, isOnThread);
-
-		const url = match.converter(match.regexMatch[0]!);
-		if (!url) continue;
-
-		const rawFile = await request(url).then(async (res) => {
+		const rawFile = await request(rawUrl).then(async (res) => {
 			return res.statusCode === 200 ? res.body.text() : null;
 		});
 		if (!rawFile) continue;
+
+		const { startLine, endLine, delta, fullFile } = resolveLines(opts, isOnThread);
 
 		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) {
 			logger.info(
 				{
 					file: {
-						url,
+						rawUrl,
 						user: message.author.id,
 					},
 				},
@@ -127,7 +132,7 @@ export async function handleGithubUrls(message: Message<true>) {
 			continue;
 		}
 
-		const lang = resolveFileLanguage(url);
+		const lang = resolveFileLanguage(rawUrl);
 
 		if (!thread) {
 			thread = await message.startThread({
@@ -137,6 +142,7 @@ export async function handleGithubUrls(message: Message<true>) {
 			});
 		}
 
+		const path = new URL(url).pathname;
 		const parsedLines = rawFile.split("\n");
 
 		const [safeStartLine, safeEndLine] = [
@@ -147,7 +153,7 @@ export async function handleGithubUrls(message: Message<true>) {
 		const linesRequested = parsedLines.slice(safeStartLine - 1, safeEndLine);
 
 		const hasCodeBlock = linesRequested.some((line) => line.includes("```"));
-		const preHeader = generateHeader({
+		const header = generateHeader({
 			startLine: safeStartLine,
 			endLine: safeEndLine,
 			path,
@@ -158,11 +164,11 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		if (fullFile || hasCodeBlock) {
 			await thread.send({
-				content: preHeader,
+				content: header,
 				files: [
 					{
 						attachment: Buffer.from(hasCodeBlock ? linesRequested.join("\n") : rawFile),
-						name: match.type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
+						name: type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
 					},
 				],
 			});
@@ -171,24 +177,27 @@ export async function handleGithubUrls(message: Message<true>) {
 			continue;
 		}
 
-		const maxLength = isOnThread ? 500 : 2_000 - (preHeader.length + SAFE_BOUNDARY + lang.length);
-
-		const safeLinesRequested = arrayEllipsis(
-			linesRequested.map((line, index) => formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi")),
-			maxLength,
+		const formattedLines = removeArrayTrailingSpaces(linesRequested).map((line, index) =>
+			formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi"),
 		);
 
-		const header = generateHeader({
-			startLine: safeStartLine,
-			endLine: safeLinesRequested.length + safeStartLine - 1,
-			path,
-			delta,
-			onThread: isOnThread,
-			fullFile,
-			ellipsed: safeLinesRequested.length !== linesRequested.length,
-		});
+		const safeLinesRequested = truncateArrayJoin(
+			formattedLines,
+			isOnThread ? 500 : 2_000 - (header.length + SAFE_BOUNDARY + lang.length),
+		);
 
-		const content = [header, codeBlock(lang, safeLinesRequested.join("\n") || "No content")].join("\n");
+		const content = [
+			generateHeader({
+				startLine: safeStartLine,
+				endLine: safeLinesRequested.length + safeStartLine - 1,
+				path,
+				delta,
+				onThread: isOnThread,
+				fullFile,
+				ellipsed: safeLinesRequested.length !== linesRequested.length,
+			}),
+			codeBlock(lang, safeLinesRequested.join("\n") || "Couldn't find any lines"),
+		].join("\n");
 
 		if (content.length + SAFE_BOUNDARY >= 2_000) {
 			await thread.send(content);
