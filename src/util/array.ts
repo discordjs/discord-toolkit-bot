@@ -2,7 +2,7 @@ export function stringArrayLength(arr: string[]) {
 	return arr.reduce((acc, cur) => acc + cur.length, 0);
 }
 
-export function arrayEllipsis(arr: string[], maxLength: number) {
+export function truncateArrayJoin(arr: string[], maxLength: number): string[] {
 	if (stringArrayLength(arr) < maxLength) {
 		return arr;
 	}

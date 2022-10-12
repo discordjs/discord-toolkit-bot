@@ -16,7 +16,6 @@ type GenerateHeaderOptions = {
 export function convertUrlToRawUrl(url: string) {
 	return (
 		url
-			// eslint-disable-next-line prefer-named-capture-group
 			.replace(">", "")
 			.replace("github.com", "raw.githubusercontent.com")
 			.replace(/\/(?:blob|(?:blame))/, "")

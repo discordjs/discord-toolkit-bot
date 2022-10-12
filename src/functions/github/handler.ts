@@ -61,8 +61,11 @@ export async function handleGithubUrls(message: Message<true>) {
 		const match = validators.find((validator) => validator.regex.exec(url!));
 		if (!match) return null;
 
+		const regexMatch = match.regex.exec(url!);
+		if (!regexMatch) return null;
+
 		return {
-			regexMatch: new RegExp(match.regex, "").exec(url!),
+			regexMatch,
 			...match,
 		};
 	});
