@@ -33,12 +33,10 @@ export function resolveLines(opts: string | undefined, isOnThread: boolean) {
 		return { fullFile: true, startLine: 0, endLine: null, delta: 0 };
 
 	if (startLine > endLine || (Number.isNaN(startLine) && !Number.isNaN(endLine))) {
-		// eslint-disable-next-line no-param-reassign
 		[startLine, endLine] = [endLine, startLine];
 	}
 
 	if (startLine < 1) {
-		// eslint-disable-next-line no-param-reassign
 		startLine = 1;
 	}
 
