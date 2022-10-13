@@ -86,7 +86,7 @@ export function generateHeader(options: GenerateHeaderOptions): string {
 	}
 
 	return fullFile
-		? `Full file from ${inlineCode(path)}`
+		? `Full file for ${inlineCode(path)}`
 		: `${
 				isRange
 					? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
