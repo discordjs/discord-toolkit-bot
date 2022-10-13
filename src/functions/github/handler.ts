@@ -11,7 +11,7 @@ import {
 	ChannelType,
 } from "discord.js";
 import { request } from "undici";
-import { truncateArrayJoin, stringArrayLength, removeArrayTrailingSpaces } from "../../util/array.js";
+import { truncateArray, stringArrayLength, trimLeadingIndent } from "../../util/array.js";
 import { URL_REGEX } from "../../util/constants.js";
 import { GistGitHubUrlRegex, NormalGitHubUrlRegex } from "./regex.js";
 import { formatLine, generateHeader, resolveFileLanguage, resolveLines, validateFileSize } from "./utils.js";
@@ -177,11 +177,11 @@ export async function handleGithubUrls(message: Message<true>) {
 			continue;
 		}
 
-		const formattedLines = removeArrayTrailingSpaces(linesRequested).map((line, index) =>
+		const formattedLines = trimLeadingIndent(linesRequested).map((line, index) =>
 			formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi"),
 		);
 
-		const safeLinesRequested = truncateArrayJoin(
+		const safeLinesRequested = truncateArray(
 			formattedLines,
 			isOnThread ? 500 : 2_000 - (header.length + SAFE_BOUNDARY + lang.length),
 		);
