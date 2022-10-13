@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { inlineCode, italic } from "discord.js";
+import { inlineCode } from "discord.js";
 import kleur from "kleur";
 import { GitHubUrlLinesRegex } from "./regex.js";
 
@@ -91,5 +91,5 @@ export function generateHeader(options: GenerateHeaderOptions): string {
 				isRange
 					? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
 					: `Line ${inlineCode(String(startLine))}`
-		  } of ${italic(path)} ${flags.join(" ")}`;
+		  } of ${inlineCode(path)} ${flags.join(" ")}`;
 }
