@@ -30,11 +30,6 @@ export default class extends Command<typeof RemoveGithubThread> {
 			}
 			interaction.channel.delete("Remove Github Lines command!");
 		} else {
-			console.log(
-				args.message.hasThread,
-				args.message.thread?.ownerId === interaction.client.user.id,
-				this.matchURL(args.message.content),
-			);
 			if (
 				!args.message.hasThread ||
 				args.message.thread?.ownerId !== interaction.client.user.id ||
