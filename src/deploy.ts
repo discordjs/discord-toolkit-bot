@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import process from "node:process";
 import { logger } from "@yuudachi/framework";
 import { Routes, REST } from "discord.js";
@@ -22,7 +23,7 @@ try {
 		BitfieldLookupCommand,
 	];
 
-	await rest.put(Routes.applicationGuildCommands(process.env.DISCORD_CLIENT_ID!, process.env.DISCORD_GUILD_ID!), {
+	await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID!), {
 		body,
 	});
 
