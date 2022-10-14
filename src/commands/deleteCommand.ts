@@ -11,11 +11,11 @@ export default class extends Command<typeof DeleteCommandContextCommand {
 		interaction: InteractionParam<CommandMethod.MessageContext>,
 		args: ArgsParam<typeof DeleteCommandContextCommand>,
 	): Promise<void> {
-	   if(args.message.interaction.user.id !== interaction.user.id || !interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)){
-              interaction.reply({ content: "You are not author of this command.", ephemeral: true })
+	   if (args.message.interaction.user.id !== interaction.user.id || !interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)) {
+              await interaction.reply({ content: "You are not author of this command.", ephemeral: true })
               return
 	   }
-           args.message.delete()
-           interaction.reply({ content: "Command successfully deleted.", ephemeral: true })
+           await args.message.delete()
+           await interaction.reply({ content: "Command successfully deleted.", ephemeral: true })
 	}
 }
