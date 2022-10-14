@@ -1,7 +1,7 @@
 import { Command } from "@yuudachi/framework";
 import type { InteractionParam, ArgsParam, CommandMethod } from "@yuudachi/framework/types";
 import { PermissionFlagsBits } from "discord.js";
-import type { DeleteCommandContextCommand } from "../interactions/context/deleteCommand.ts";
+import type { DeleteCommandContextCommand } from "../interactions/context/deleteCommand.js";
 
 export default class extends Command<typeof RemoveGithubThread> {
 	public constructor() {
