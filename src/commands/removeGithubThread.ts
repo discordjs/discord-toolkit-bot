@@ -8,8 +8,8 @@ export default class extends Command<typeof RemoveGithubThread> {
 	public constructor() {
 		super(["Remove Github Thread"]);
 	}
-	private matchURL(content: string): boolean {
-		return [NormalGitHubUrlRegex, GitHubUrlLinesRegex].some((regex) => regex.test(content));
+	private matchChannelName(name: string): boolean {
+		return name === "GitHub Lines for this message";
 	}
 	public override async messageContext(
 		interaction: InteractionParam<CommandMethod.MessageContext>,
@@ -17,11 +17,11 @@ export default class extends Command<typeof RemoveGithubThread> {
 	): Promise<void> {
 		if (interaction.channel?.isThread()) {
 			const starterMessage = await interaction.channel.fetchStarterMessage();
-			if (!this.matchURL(starterMessage?.content!) && interaction.channel.ownerId !== interaction.client.user.id) {
+			if (!this.matchChannelName(interaction.channel?.name) && interaction.channel.ownerId !== interaction.client.user.id) {
 				interaction.reply({ content: "This is not github thread.", ephemeral: true });
 				return;
 			}
-			if (
+			if ( 
 				interaction.user.id !== starterMessage?.author.id &&
 				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
 			) {
@@ -33,7 +33,7 @@ export default class extends Command<typeof RemoveGithubThread> {
 			if (
 				!args.message.hasThread ||
 				args.message.thread?.ownerId !== interaction.client.user.id ||
-				!this.matchURL(args.message.content)
+				!this.matchChannelName(args.message.thread?.name)
 			) {
 				interaction.reply({ content: "No Github Thread found.", ephemeral: true });
 				return;
