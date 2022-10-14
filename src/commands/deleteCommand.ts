@@ -9,7 +9,7 @@ export default class extends Command<typeof DeleteCommandContextCommand {
 	}
 	public override async messageContext(
 		interaction: InteractionParam<CommandMethod.MessageContext>,
-		args: ArgsParam<typeof DeleteCommandContextCommand,
+		args: ArgsParam<typeof DeleteCommandContextCommand>,
 	): Promise<void> {
 	   if(args.message.interaction.user.id !== interaction.user.id || !interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)){
               interaction.reply({ content: "You are not author of this command.", ephemeral: true })
