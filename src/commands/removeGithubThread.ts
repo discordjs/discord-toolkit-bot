@@ -18,35 +18,35 @@ export default class extends Command<typeof RemoveGithubThread> {
 		if (interaction.channel?.isThread()) {
 			const starterMessage = await interaction.channel.fetchStarterMessage();
 			if (!this.matchChannelName(interaction.channel?.name) && interaction.channel.ownerId !== interaction.client.user.id) {
-				interaction.reply({ content: "This is not github thread.", ephemeral: true });
+				await interaction.reply({ content: "This is not github thread.", ephemeral: true });
 				return;
 			}
 			if ( 
 				interaction.user.id !== starterMessage?.author.id &&
 				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
 			) {
-				interaction.reply({ content: "You are not able to do it.", ephemeral: true });
+				await interaction.reply({ content: "You are not able to do it.", ephemeral: true });
 				return;
 			}
-			interaction.channel.delete("Remove Github Lines command!");
+			await interaction.channel.delete("Remove Github Lines command!");
 		} else {
 			if (
 				!args.message.hasThread ||
 				args.message.thread?.ownerId !== interaction.client.user.id ||
 				!this.matchChannelName(args.message.thread?.name)
 			) {
-				interaction.reply({ content: "No Github Thread found.", ephemeral: true });
+				await interaction.reply({ content: "No Github Thread found.", ephemeral: true });
 				return;
 			}
 			if (
 				interaction.user.id !== args.message?.author.id &&
 				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
 			) {
-				interaction.reply({ content: "You are not able to do it.", ephemeral: true });
+				await interaction.reply({ content: "You are not able to do it.", ephemeral: true });
 				return;
 			}
-			args.message.thread?.delete("Remove Github Lines command!");
-			interaction.reply({ content: "Thread succesfully deleted.", ephemeral: true });
+			await args.message.thread?.delete("Remove Github Lines command!");
+			await interaction.reply({ content: "Thread succesfully deleted.", ephemeral: true });
 		}
 	}
 }
