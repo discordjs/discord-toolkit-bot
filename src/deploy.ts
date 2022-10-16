@@ -3,7 +3,7 @@ import process from "node:process";
 import { logger } from "@yuudachi/framework";
 import { Routes, REST } from "discord.js";
 import {
-	SnowflakeInfoCommand,
+	SnowflakeCommands,
 	BitfieldLookupCommand,
 	IntentsLookupContextCommand,
 	UserInfoCommand,
@@ -18,7 +18,7 @@ try {
 	const body: unknown[] = [
 		UserInfoCommand,
 		IntentsLookupContextCommand,
-		SnowflakeInfoCommand,
+		SnowflakeCommands,
 		UserInfoContextCommand,
 		BitfieldLookupCommand,
 	];
