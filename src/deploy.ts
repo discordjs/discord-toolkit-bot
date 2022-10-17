@@ -8,7 +8,7 @@ import {
 	IntentsLookupContextCommand,
 	UserInfoCommand,
 	UserInfoContextCommand,
-        DeleteCommandContextCommand,
+	DeleteCommandContextCommand,
 } from "./interactions/index.js";
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
@@ -22,7 +22,7 @@ try {
 		SnowflakeInfoCommand,
 		UserInfoContextCommand,
 		BitfieldLookupCommand,
-                DeleteCommandContextCommand,
+		DeleteCommandContextCommand,
 	];
 
 	await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID!), {
