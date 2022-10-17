@@ -1,7 +1,7 @@
 import { setTimeout as wait } from "node:timers/promises";
 import { Command } from "@yuudachi/framework";
 import type { InteractionParam, ArgsParam, CommandMethod } from "@yuudachi/framework/types";
-import { PermissionFlagsBits } from "discord.js";
+import { PermissionFlagsBits, time, TimestampStyles } from "discord.js";
 import type { DeleteCommandContextCommand } from "../interactions/context/deleteCommand.js";
 import { GITHUB_THREAD_NAME } from "../util/constants.js";
 
@@ -47,7 +47,8 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				return;
 			}
 
-			await wait(2_000);
+			await interaction.reply(`This thread will be deleted in ${time(new Date(Date.now() + 5_000), TimestampStyles.RelativeTime)}`)
+			await wait(5_000);
 			await interaction.channel?.delete("Remove Github Lines command!");
 		} else if (args.message.hasThread) {
 			if (
@@ -66,8 +67,10 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				return;
 			}
 
+			await interaction.reply({ content: `This thread will be deleted in ${time(new Date(Date.now() + 5_000), TimestampStyles.RelativeTime)}`, ephemeral: true })
+			await wait(5_000);
 			await args.message.thread?.delete("Remove Github Lines command!");
-			await interaction.reply({ content: "Thread succesfully deleted.", ephemeral: true });
+			await interaction.editReply({ content: "Thread succesfully deleted."});
 		}
 	}
 }
