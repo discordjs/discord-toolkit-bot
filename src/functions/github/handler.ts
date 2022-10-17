@@ -12,7 +12,7 @@ import {
 } from "discord.js";
 import { request } from "undici";
 import { truncateArray, stringArrayLength, trimLeadingIndent } from "../../util/array.js";
-import { URL_REGEX } from "../../util/constants.js";
+import { GITHUB_THREAD_NAME, URL_REGEX } from "../../util/constants.js";
 import { GistGitHubUrlRegex, NormalGitHubUrlRegex } from "./regex.js";
 import { formatLine, generateHeader, resolveFileLanguage, resolveLines, validateFileSize } from "./utils.js";
 
@@ -136,7 +136,7 @@ export async function handleGithubUrls(message: Message<true>) {
 
 		if (!thread) {
 			thread = await message.startThread({
-				name: `GitHub Lines for this message`,
+				name: GITHUB_THREAD_NAME,
 				reason: "Resolving GitHub link",
 				autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
 			});
