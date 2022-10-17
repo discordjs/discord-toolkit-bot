@@ -4,6 +4,7 @@ import type { ThreadChannel } from "discord.js";
 import { Events, Client } from "discord.js";
 import { injectable } from "tsyringe";
 import { logger } from "@yuudachi/framework";
+import { GITHUB_THREAD_NAME } from "../../util/constants.js";
 
 @injectable()
 export default class implements Event {
@@ -18,7 +19,7 @@ export default class implements Event {
 			[ThreadChannel, ThreadChannel]
 		>) {
 			if (oldThread.archived || !newThread.archived) continue;
-			if (newThread.ownerId !== this.client.user.id || newThread.name !== "GitHub Lines for this message") continue;
+			if (newThread.ownerId !== this.client.user.id || newThread.name !== GITHUB_THREAD_NAME) continue;
 			logger.info(
 				{
 					parent: newThread.parent?.name ?? "Not cached",
