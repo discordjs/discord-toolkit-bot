@@ -26,6 +26,11 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				await interaction.reply({ content: "You are not author of this command.", ephemeral: true });
 				return;
 			}
+			
+			if(!args.message.deletable) {
+				await interaction.reply({ content: "I can't delete this message.", ephemeral: true });
+				return
+			} 
 
 			await args.message.delete();
 			await interaction.reply({ content: "Command successfully deleted.", ephemeral: true });
