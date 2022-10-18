@@ -11,7 +11,7 @@ export enum Colors {
 	DiscordDanger = 0xed4245,
 }
 
-export const GITHUB_THREAD_NAME = "GitHub Lines for this message";
+export const GITHUB_THREAD_NAME = "Resolved GitHub links";
 export const DATE_FORMAT_LOGFILE = "YYYY-MM-DD_HH-mm-ss";
 export const DATE_FORMAT_WITH_SECONDS = "YYYY/MM/DD HH:mm:ss";
 

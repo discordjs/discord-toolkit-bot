@@ -23,24 +23,24 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				args.message.interaction.user.id !== interaction.user.id ||
 				!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)
 			) {
-				await interaction.reply({ content: "You are not author of this command.", ephemeral: true });
+				await interaction.reply({ content: "Only the author of a command can remove it.", ephemeral: true });
 				return;
 			}
 			
 			if(!args.message.deletable) {
-				await interaction.reply({ content: "I can't delete this message.", ephemeral: true });
+				await interaction.reply({ content: "Cannot delete this message.", ephemeral: true });
 				return
 			} 
 
 			await args.message.delete();
-			await interaction.reply({ content: "Command successfully deleted.", ephemeral: true });
+			await interaction.reply({ content: "Command response deleted.", ephemeral: true });
 		} else if (interaction.channel?.isThread()) {
 			const starterMessage = await interaction.channel.fetchStarterMessage();
 			if (
 				!this.matchChannelName(interaction.channel?.name) &&
 				interaction.channel.ownerId !== interaction.client.user.id
 			) {
-				await interaction.reply({ content: "This is not github thread.", ephemeral: true });
+				await interaction.reply({ content: "This is not a GitHub thread.", ephemeral: true });
 				return;
 			}
 
@@ -48,19 +48,19 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				interaction.user.id !== starterMessage?.author.id &&
 				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
 			) {
-				await interaction.reply({ content: "You are not able to do it.", ephemeral: true });
+				await interaction.reply({ content: "You cannot delete this thread.", ephemeral: true });
 				return;
 			}
 
 			await interaction.reply(`This thread will be deleted in ${time(new Date(Date.now() + 5_000), TimestampStyles.RelativeTime)}`)
 			await wait(5_000);
-			await interaction.channel?.delete("Remove Github Lines command!");
+			await interaction.channel?.delete("removed GitHub link thread");
 		} else if (args.message.hasThread) {
 			if (
 				args.message.thread?.ownerId !== interaction.client.user.id ||
 				!this.matchChannelName(args.message.thread?.name)
 			) {
-				await interaction.reply({ content: "No Github Thread found.", ephemeral: true });
+				await interaction.reply({ content: "No GitHub thread found.", ephemeral: true });
 				return;
 			}
 
@@ -68,13 +68,13 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				interaction.user.id !== args.message?.author.id &&
 				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
 			) {
-				await interaction.reply({ content: "You are not able to do it.", ephemeral: true });
+				await interaction.reply({ content: "You cannot delete this thread.", ephemeral: true });
 				return;
 			}
 
 			await interaction.reply({ content: `This thread will be deleted in ${time(new Date(Date.now() + 5_000), TimestampStyles.RelativeTime)}`, ephemeral: true })
 			await wait(5_000);
-			await args.message.thread?.delete("Remove Github Lines command!");
+			await args.message.thread?.delete("removed GitHub link thread");
 			await interaction.editReply({ content: "Thread succesfully deleted."});
 		}
 	}
