@@ -20,7 +20,7 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 	): Promise<void> {
 		if (args.message.interaction) {
 			if (
-				args.message.interaction.user.id !== interaction.user.id ||
+				args.message.interaction.user.id !== interaction.user.id &&
 				!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)
 			) {
 				await interaction.reply({ content: "Only the author of a command can remove it.", ephemeral: true });
