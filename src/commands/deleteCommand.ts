@@ -54,7 +54,7 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 			await args.message.thread?.delete("removed GitHub link thread");
 			await interaction.editReply({ content: "Thread succesfully deleted." });
 		} else {
-			await interaction.editReply({ content: "Cannot cleanup." });
+			await interaction.editReply({ content: "Message cleanup can only be performed on slash commands or messages with a GitHub thread in it." });
 		}
 	}
 }
