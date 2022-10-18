@@ -6,7 +6,7 @@ import { GITHUB_THREAD_NAME } from "../util/constants.js";
 
 export default class extends Command<typeof DeleteCommandContextCommand> {
 	public constructor() {
-		super(["Delete Command"]);
+		super(["Cleanup Message"]);
 	}
 
 	private matchChannelName(name: string): boolean {
@@ -23,38 +23,38 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 				args.message.interaction.user.id !== interaction.user.id &&
 				!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)
 			) {
-				await interaction.editReply({ content: "Only the author of a command can remove it.", ephemeral: true });
+				await interaction.editReply({ content: "Only the author of a command can remove it." });
 				return;
 			}
-			
-			if(!args.message.deletable) {
-				await interaction.editReply({ content: "Cannot delete this message.", ephemeral: true });
-				return
-			} 
+
+			if (!args.message.deletable) {
+				await interaction.editReply({ content: "Cannot delete this message." });
+				return;
+			}
 
 			await args.message.delete();
-			await interaction.editReply({ content: "Command response deleted.", ephemeral: true });
-		} else if (interaction.channel?.isThread()) {
-			const starterMessage = await interaction.channel.fetchStarterMessage();
+			await interaction.editReply({ content: "Command response deleted." });
+		} else if (args.message.hasThread) {
 			if (
-				!this.matchChannelName(interaction.channel?.name) &&
-				interaction.channel.ownerId !== interaction.client.user.id
+				args.message.thread?.ownerId !== interaction.client.user.id ||
+				!this.matchChannelName(args.message.thread?.name)
 			) {
-				await interaction.editReply({ content: "This is not a GitHub thread.", ephemeral: true });
+				await interaction.editReply({ content: "No GitHub thread found." });
 				return;
 			}
 
 			if (
-				interaction.user.id !== starterMessage?.author.id &&
+				interaction.user.id !== args.message?.author.id &&
 				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
 			) {
-				await interaction.editReply({ content: "You cannot delete this thread.", ephemeral: true });
+				await interaction.editReply({ content: "You cannot delete this thread." });
 				return;
 			}
 
-			await interaction.channel?.delete("removed GitHub link thread");
+			await args.message.thread?.delete("removed GitHub link thread");
+			await interaction.editReply({ content: "Thread succesfully deleted." });
 		} else {
-			await interaction.editReply({ content: "Cannot cleanup."});
+			await interaction.editReply({ content: "Cannot cleanup." });
 		}
 	}
 }
