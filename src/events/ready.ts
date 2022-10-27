@@ -18,7 +18,8 @@ export default class implements Event {
 				msg: `Client ready`,
 				user: this.client.user.tag,
 				id: this.client.user.id,
-				guilds: this.client.guilds.cache.map((guild) => guild.name),
+				guilds: this.client.guilds.cache.size,
+				approximateMembers: this.client.guilds.cache.reduce((total, current) => total + current.memberCount, 0),
 			});
 		}
 	}
