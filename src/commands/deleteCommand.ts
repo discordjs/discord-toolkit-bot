@@ -30,7 +30,7 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 			await args.message.delete();
 			await interaction.editReply({ content: "Command response deleted." });
 		} else {
-			await interaction.editReply({ content: "Message cleanup can only be performed on slash commands in it." });
+			await interaction.editReply({ content: "Message cleanup can only be performed on slash commands." });
 		}
 	}
 }
