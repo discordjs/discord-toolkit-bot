@@ -2,15 +2,10 @@ import { Command } from "@yuudachi/framework";
 import type { InteractionParam, ArgsParam, CommandMethod } from "@yuudachi/framework/types";
 import { PermissionFlagsBits } from "discord.js";
 import type { DeleteCommandContextCommand } from "../interactions/context/deleteCommand.js";
-import { GITHUB_THREAD_NAME } from "../util/constants.js";
 
 export default class extends Command<typeof DeleteCommandContextCommand> {
 	public constructor() {
 		super(["Cleanup Message"]);
-	}
-
-	private matchChannelName(name: string): boolean {
-		return name === GITHUB_THREAD_NAME;
 	}
 
 	public override async messageContext(
@@ -34,27 +29,8 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 
 			await args.message.delete();
 			await interaction.editReply({ content: "Command response deleted." });
-		} else if (args.message.hasThread) {
-			if (
-				args.message.thread?.ownerId !== interaction.client.user.id ||
-				!this.matchChannelName(args.message.thread?.name)
-			) {
-				await interaction.editReply({ content: "No GitHub thread found." });
-				return;
-			}
-
-			if (
-				interaction.user.id !== args.message?.author.id &&
-				!interaction.member.permissions.has(PermissionFlagsBits.ManageThreads)
-			) {
-				await interaction.editReply({ content: "You cannot delete this thread." });
-				return;
-			}
-
-			await args.message.thread?.delete("removed GitHub link thread");
-			await interaction.editReply({ content: "Thread succesfully deleted." });
 		} else {
-			await interaction.editReply({ content: "Message cleanup can only be performed on slash commands or messages with a GitHub thread in it." });
+			await interaction.editReply({ content: "Message cleanup can only be performed on slash commands in it." });
 		}
 	}
 }
