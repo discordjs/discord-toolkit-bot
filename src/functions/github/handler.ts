@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { URL } from "node:url";
 import type { AttachmentPayload } from "discord.js";
 import { codeBlock } from "discord.js";
+import kleur from "kleur";
 import { request } from "undici";
 import { trimLeadingIndent, truncateArray } from "../../util/array.js";
 import { URL_REGEX } from "../../util/constants.js";
@@ -132,6 +133,7 @@ export async function resolveGitHubResults(matches: GitHubMatchResult[]) {
 		);
 
 		const safeLinesRequested = truncateArray(formattedLines, 2_000 - (header.length + SAFE_BOUNDARY + lang.length));
+		const joinedSafeLines = safeLinesRequested.join("\n");
 
 		const ellipsed = safeLinesRequested.length !== formattedLines.length;
 
@@ -142,7 +144,7 @@ export async function resolveGitHubResults(matches: GitHubMatchResult[]) {
 				path,
 				ellipsed,
 			}),
-			codeBlock(lang, safeLinesRequested.join("\n") || "Couldn't find any lines"),
+			codeBlock(joinedSafeLines.length ? lang : "ansi", joinedSafeLines || kleur.red("Couldn't find any lines")),
 		].join("\n");
 
 		if (content.length >= 2_000) {
