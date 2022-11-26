@@ -1,14 +1,10 @@
-import { Buffer } from "node:buffer";
 import { inlineCode } from "discord.js";
 import kleur from "kleur";
 import { GitHubUrlLinesRegex } from "./regex.js";
 
 type GenerateHeaderOptions = {
-	delta: number;
 	ellipsed?: boolean;
 	endLine: number | null;
-	fullFile: boolean;
-	onThread: boolean;
 	path: string;
 	startLine: number;
 };
@@ -25,12 +21,9 @@ type LineOpts = {
 	start?: number;
 };
 
-export function resolveLines(opts: string | undefined, isOnThread: boolean) {
+export function resolveLines(opts: string | undefined) {
 	const lines = opts?.match(GitHubUrlLinesRegex)?.groups as LineOpts | undefined;
 	let [startLine, endLine] = [Number(lines?.start), Number(lines?.end)];
-
-	if (!lines || (Number.isNaN(startLine) && Number.isNaN(endLine)))
-		return { fullFile: true, startLine: 0, endLine: null, delta: 0 };
 
 	if (startLine > endLine || (Number.isNaN(startLine) && !Number.isNaN(endLine))) {
 		[startLine, endLine] = [endLine, startLine];
@@ -45,16 +38,14 @@ export function resolveLines(opts: string | undefined, isOnThread: boolean) {
 			startLine,
 			endLine: null,
 			delta: 0,
-			fullFile: false,
 		};
 	}
 
 	const delta = Number(endLine) - startLine;
 	return {
 		startLine,
-		endLine: delta > 10 && isOnThread ? startLine + 10 : endLine,
+		endLine,
 		delta,
-		fullFile: false,
 	};
 }
 
@@ -63,38 +54,26 @@ export function formatLine(line: string, start: number, end: number, index: numb
 	return `${ansi ? kleur.cyan(prefix) : prefix} | ${line}`;
 }
 
-export function validateFileSize(file: Buffer) {
-	return Buffer.byteLength(file) < 8_000_000;
-}
-
 export function resolveFileLanguage(url: string) {
 	return url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
 }
 
-export function generateHeader({
-	startLine,
-	delta,
-	ellipsed,
-	endLine,
-	path,
-	fullFile,
-	onThread,
-}: GenerateHeaderOptions): string {
+export function generateHeader({ startLine, ellipsed, endLine, path }: GenerateHeaderOptions): string {
 	const isRange = !endLine || endLine !== startLine;
 
 	const flags = [];
 
-	if (onThread && delta > 10) {
-		flags.push("(Limited to 10 lines)");
-	} else if (ellipsed) {
+	if (ellipsed) {
 		flags.push("(Limited to 2000 characters)");
 	}
 
-	return fullFile
-		? `Full file for ${inlineCode(path)}`
-		: `${
-				isRange
-					? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
-					: `Line ${inlineCode(String(startLine))}`
-		  } of ${inlineCode(path)} ${flags.join(" ")}`;
+	if (Number.isNaN(endLine) && Number.isNaN(startLine)) {
+		return inlineCode(path);
+	}
+
+	return `${
+		isRange
+			? `Lines ${inlineCode(String(startLine))} to ${inlineCode(String(endLine))}`
+			: `Line ${inlineCode(String(startLine))}`
+	} of ${inlineCode(path)} ${flags.join(" ")}`;
 }

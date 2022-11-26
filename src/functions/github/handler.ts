@@ -1,20 +1,12 @@
 import { Buffer } from "node:buffer";
 import { URL } from "node:url";
-import { logger } from "@yuudachi/framework";
-import {
-	type AnyThreadChannel,
-	type Message,
-	type VoiceChannel,
-	PermissionFlagsBits,
-	ThreadAutoArchiveDuration,
-	codeBlock,
-	ChannelType,
-} from "discord.js";
+import type { AttachmentPayload } from "discord.js";
+import { codeBlock } from "discord.js";
 import { request } from "undici";
-import { truncateArray, stringArrayLength, trimLeadingIndent } from "../../util/array.js";
+import { trimLeadingIndent, truncateArray } from "../../util/array.js";
 import { URL_REGEX } from "../../util/constants.js";
 import { GistGitHubUrlRegex, NormalGitHubUrlRegex } from "./regex.js";
-import { formatLine, generateHeader, resolveFileLanguage, resolveLines, validateFileSize } from "./utils.js";
+import { formatLine, generateHeader, resolveFileLanguage, resolveLines } from "./utils.js";
 
 const SAFE_BOUNDARY = 100;
 
@@ -24,7 +16,7 @@ enum GitHubUrlType {
 	Diff,
 }
 
-type MatchResult = {
+export type GitHubMatchResult = {
 	converter(url: string): string | null;
 	opts: string | undefined;
 	regex: RegExp;
@@ -53,7 +45,7 @@ const validators = [
 				return null;
 			}
 
-			const fileName = opts.split("-").slice(0, -1).join("-");
+			const fileName = opts.split("-").slice(0, -1).join(".");
 			const extension = opts.split("-").pop();
 
 			return `https://gist.githubusercontent.com/${user}/${id}/raw/${fileName}.${extension}`;
@@ -61,9 +53,9 @@ const validators = [
 	},
 ];
 
-export async function handleGithubUrls(message: Message<true>) {
-	const urls = new Set(message.content.matchAll(URL_REGEX));
-	if (!urls.size) return;
+export async function matchGitHubUrls(text: string): Promise<GitHubMatchResult[]> {
+	const urls = new Set(text.matchAll(URL_REGEX));
+	if (!urls.size) return [];
 
 	const matches = Array.from(urls)
 		.map(([url]) => {
@@ -80,68 +72,30 @@ export async function handleGithubUrls(message: Message<true>) {
 				...match,
 			};
 		})
-		.filter(Boolean) as MatchResult[];
+		.filter(Boolean) as GitHubMatchResult[];
 
-	if (!matches.length) return;
+	if (!matches.length) return [];
+	return matches;
+}
 
-	const isOnThread = message.channel
-		.permissionsFor(message.guild!.members.me!)!
-		.has(PermissionFlagsBits.CreatePublicThreads)
-		? message.channel.type !== ChannelType.GuildText && message.channel.type !== ChannelType.GuildAnnouncement
-		: true;
+type ResolvedGitHubResult = {
+	content: string;
+	ellipsed: boolean;
+	files: AttachmentPayload[];
+};
 
-	logger.info(
-		{
-			urls: matches.map((match) => ({
-				type: GitHubUrlType[match!.type] ?? "Unknown type",
-				url: match!.url ?? "Unknown url",
-			})),
-			user: message.author.id,
-			isOnThread,
-		},
-		"GitHub URL(s) detected",
-	);
-
-	let thread: AnyThreadChannel<boolean> | VoiceChannel | null = isOnThread
-		? (message.channel as AnyThreadChannel<boolean> | VoiceChannel)
-		: null;
-
-	const tempContent: string[] = [];
+export async function resolveGitHubResults(matches: GitHubMatchResult[]) {
+	const results: ResolvedGitHubResult[] = [];
 
 	for (const { url, opts, converter, type } of matches) {
 		const rawUrl = converter(url);
 		if (!rawUrl) continue;
 
-		const rawFile = await request(rawUrl).then(async (res) => {
-			return res.statusCode === 200 ? res.body.text() : null;
-		});
+		const rawFile = await request(rawUrl).then(async (res) => (res.statusCode === 200 ? res.body.text() : null));
 		if (!rawFile) continue;
-
-		const { startLine, endLine, delta, fullFile } = resolveLines(opts, isOnThread);
-
-		if (!validateFileSize(Buffer.from(rawFile)) && fullFile) {
-			logger.info(
-				{
-					file: {
-						rawUrl,
-						user: message.author.id,
-					},
-				},
-				"File too large to be sent",
-			);
-			continue;
-		}
+		const { startLine, endLine } = resolveLines(opts);
 
 		const lang = resolveFileLanguage(rawUrl);
-
-		if (!thread) {
-			thread = await message.startThread({
-				name: `GitHub Lines for this message`,
-				reason: "Resolving GitHub link",
-				autoArchiveDuration: ThreadAutoArchiveDuration.OneHour,
-			});
-		}
-
 		const path = new URL(url).pathname;
 		const parsedLines = rawFile.split("\n");
 
@@ -151,29 +105,25 @@ export async function handleGithubUrls(message: Message<true>) {
 		];
 
 		const linesRequested = parsedLines.slice(safeStartLine - 1, safeEndLine);
-
 		const hasCodeBlock = linesRequested.some((line) => line.includes("```"));
+
 		const header = generateHeader({
 			startLine: safeStartLine,
 			endLine: safeEndLine,
 			path,
-			delta,
-			onThread: isOnThread,
-			fullFile,
 		});
 
-		if (fullFile || hasCodeBlock) {
-			await thread.send({
+		if (hasCodeBlock) {
+			results.push({
 				content: header,
+				ellipsed: false,
 				files: [
 					{
-						attachment: Buffer.from(hasCodeBlock ? linesRequested.join("\n") : rawFile),
+						attachment: Buffer.from(linesRequested.join("\n")),
 						name: type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
 					},
 				],
 			});
-
-			if (isOnThread) break;
 			continue;
 		}
 
@@ -181,38 +131,39 @@ export async function handleGithubUrls(message: Message<true>) {
 			formatLine(line, safeStartLine, safeEndLine, index, lang === "ansi"),
 		);
 
-		const safeLinesRequested = truncateArray(
-			formattedLines,
-			isOnThread ? 500 : 2_000 - (header.length + SAFE_BOUNDARY + lang.length),
-		);
+		const safeLinesRequested = truncateArray(formattedLines, 2_000 - (header.length + SAFE_BOUNDARY + lang.length));
+
+		const ellipsed = safeLinesRequested.length !== formattedLines.length;
 
 		const content = [
 			generateHeader({
 				startLine: safeStartLine,
 				endLine: safeLinesRequested.length + safeStartLine - 1,
 				path,
-				delta,
-				onThread: isOnThread,
-				fullFile,
-				ellipsed: safeLinesRequested.length !== linesRequested.length,
+				ellipsed,
 			}),
 			codeBlock(lang, safeLinesRequested.join("\n") || "Couldn't find any lines"),
 		].join("\n");
 
-		if (content.length + SAFE_BOUNDARY >= 2_000) {
-			await thread.send(content);
-		} else if (isOnThread || stringArrayLength(tempContent) + content.length + SAFE_BOUNDARY >= 2_000) {
-			await thread.send(tempContent.join("\n") || content);
-
-			tempContent.length = 0;
-			if (content.length && !tempContent.join("\n")) tempContent.push(content);
+		if (content.length >= 2_000) {
+			results.push({
+				content: header,
+				ellipsed,
+				files: [
+					{
+						attachment: Buffer.from(linesRequested.join("\n")),
+						name: type === GitHubUrlType.Gist ? `${path}.${lang}` : path,
+					},
+				],
+			});
 		} else {
-			tempContent.push(content);
+			results.push({
+				content,
+				ellipsed,
+				files: [],
+			});
 		}
-
-		if (isOnThread) break;
 	}
 
-	if (!tempContent.length || !thread || isOnThread) return;
-	await thread.send(tempContent.join("\n"));
+	return results;
 }
