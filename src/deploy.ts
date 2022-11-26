@@ -8,6 +8,7 @@ import {
 	IntentsLookupContextCommand,
 	UserInfoCommand,
 	UserInfoContextCommand,
+	GithubResolveContextCommand,
 } from "./interactions/index.js";
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
@@ -21,6 +22,7 @@ try {
 		SnowflakeInfoCommand,
 		UserInfoContextCommand,
 		BitfieldLookupCommand,
+		GithubResolveContextCommand,
 	];
 
 	await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID!), {
