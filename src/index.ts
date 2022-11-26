@@ -12,6 +12,7 @@ import {
 import type { CommandPayload, Event } from "@yuudachi/framework/types";
 import { Client, GatewayIntentBits, Options } from "discord.js";
 import readdirp from "readdirp";
+import { createGithubCache } from "./util/github.js";
 import { createWebhooks } from "./util/webhooks.js";
 
 const client = new Client({
@@ -29,6 +30,7 @@ container.register(Client, { useValue: client });
 
 createCommands();
 createWebhooks();
+createGithubCache();
 
 const commandFiles = readdirp(fileURLToPath(new URL("commands", import.meta.url)), {
 	fileFilter: "*.js",
