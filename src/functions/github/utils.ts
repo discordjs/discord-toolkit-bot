@@ -71,17 +71,22 @@ export function resolveFileLanguage(url: string) {
 	return url!.split(".").pop()?.replace(GitHubUrlLinesRegex, "") ?? "ansi";
 }
 
-export function generateHeader(options: GenerateHeaderOptions): string {
-	const { startLine, delta, ellipsed, endLine, path, fullFile, onThread } = options;
+export function generateHeader({
+	startLine,
+	delta,
+	ellipsed,
+	endLine,
+	path,
+	fullFile,
+	onThread,
+}: GenerateHeaderOptions): string {
 	const isRange = !endLine || endLine !== startLine;
 
 	const flags = [];
 
 	if (onThread && delta > 10) {
 		flags.push("(Limited to 10 lines)");
-	}
-
-	if (ellipsed) {
+	} else if (ellipsed) {
 		flags.push("(Limited to 2000 characters)");
 	}
 
