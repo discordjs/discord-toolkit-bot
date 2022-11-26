@@ -1,11 +1,14 @@
 import { Buffer } from "node:buffer";
 import { URL } from "node:url";
-import type { AttachmentPayload } from "discord.js";
+import type { AttachmentPayload, Collection } from "discord.js";
 import { codeBlock } from "discord.js";
 import kleur from "kleur";
+import { container } from "tsyringe";
 import { request } from "undici";
+import { kGitHubCache } from "../../tokens.js";
 import { trimLeadingIndent, truncateArray } from "../../util/array.js";
 import { URL_REGEX } from "../../util/constants.js";
+import type { GitHubCacheEntry } from "../../util/github.js";
 import { GistGitHubUrlRegex, NormalGitHubUrlRegex } from "./regex.js";
 import { formatLine, generateHeader, resolveFileLanguage, resolveLines } from "./utils.js";
 
@@ -85,14 +88,39 @@ type ResolvedGitHubResult = {
 	files: AttachmentPayload[];
 };
 
+export async function resolveGithubRawFile(
+	url: string,
+	cache: Collection<string, GitHubCacheEntry>,
+): Promise<string | null> {
+	// eslint-disable-next-line unicorn/no-unsafe-regex
+	const cleanUrl = url.replace(/#L\d+(?:-L\d+)?/, "");
+
+	if (cache.has(cleanUrl)) {
+		const entry = cache.get(cleanUrl)!;
+		entry.lastUsed = Date.now();
+		return entry.payload;
+	}
+
+	const rawFile = await request(cleanUrl).then(async (res) => (res.statusCode === 200 ? res.body.text() : null));
+	if (!rawFile) return null;
+
+	cache.set(cleanUrl, {
+		payload: rawFile,
+		lastUsed: Date.now(),
+	});
+
+	return rawFile;
+}
+
 export async function resolveGitHubResults(matches: GitHubMatchResult[]) {
 	const results: ResolvedGitHubResult[] = [];
+	const cache = container.resolve<Collection<string, GitHubCacheEntry>>(kGitHubCache);
 
 	for (const { url, opts, converter, type } of matches) {
 		const rawUrl = converter(url);
 		if (!rawUrl) continue;
 
-		const rawFile = await request(rawUrl).then(async (res) => (res.statusCode === 200 ? res.body.text() : null));
+		const rawFile = await resolveGithubRawFile(rawUrl, cache);
 		if (!rawFile) continue;
 		const { startLine, endLine } = resolveLines(opts);
 

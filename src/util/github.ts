@@ -1,15 +1,15 @@
 import { setInterval } from "node:timers";
 import { logger } from "@yuudachi/framework";
-import { Collection, type InteractionReplyOptions } from "discord.js";
+import { Collection } from "discord.js";
 import { container } from "tsyringe";
 import { kGitHubCache } from "../tokens.js";
 
 const GITHUB_CACHE_SWEEP_INTERVAL = 60 * 60 * 1_000;
-const GITHUB_CACHE_MAX_AGE = 10 * 60 * 1_000;
+const GITHUB_CACHE_MAX_AGE = 5 * 60 * 60 * 1_000;
 
 export type GitHubCacheEntry = {
 	lastUsed: number;
-	payloads: InteractionReplyOptions[];
+	payload: string;
 };
 
 export function createGithubCache() {
