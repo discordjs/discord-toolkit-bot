@@ -2,6 +2,8 @@ import type { ApplicationFlags, UserFlags } from "discord.js";
 
 export function formatUserFlag(flag: keyof typeof UserFlags) {
 	switch (flag) {
+		case "ActiveDeveloper":
+			return "Active Developer";
 		case "BotHTTPInteractions":
 			return "Bot Interaction";
 		case "BugHunterLevel1":
