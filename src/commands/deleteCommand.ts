@@ -5,7 +5,7 @@ import type { DeleteCommandContextCommand } from "../interactions/context/delete
 
 export default class extends Command<typeof DeleteCommandContextCommand> {
 	public constructor() {
-		super(["Cleanup Message"]);
+		super(["Remove Command"]);
 	}
 
 	public override async messageContext(
@@ -13,11 +13,12 @@ export default class extends Command<typeof DeleteCommandContextCommand> {
 		args: ArgsParam<typeof DeleteCommandContextCommand>,
 	): Promise<void> {
 		await interaction.deferReply({ ephemeral: true });
+
 		if (!args.message.interaction) {
-			await interaction.editReply({ content: "Message cleanup can only be performed on slash commands." });
+			await interaction.editReply({ content: "You can only remove command responses." });
 			return;
 		}
-		
+
 		if (
 			args.message.interaction.user.id !== interaction.user.id &&
 			!interaction.memberPermissions.has(PermissionFlagsBits.ManageMessages)
