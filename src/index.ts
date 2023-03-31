@@ -15,7 +15,7 @@ import readdirp from "readdirp";
 import { createWebhooks } from "./util/webhooks.js";
 
 const client = new Client({
-	intents: [GatewayIntentBits.Guilds],
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 	makeCache: Options.cacheWithLimits({
 		MessageManager: 10,
 		StageInstanceManager: 10,
