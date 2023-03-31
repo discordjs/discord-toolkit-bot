@@ -1,11 +1,13 @@
 import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import { Events, Client } from "discord.js";
-import { injectable } from "tsyringe";
+import { container, injectable } from "tsyringe";
+import { kAutoresponses } from "../tokens.js";
+import type { AutoResponse } from "../util/autoresponses.js";
 
 @injectable()
 export default class implements Event {
-	public name = "Support breaking error warning";
+	public name = "Auto responses";
 
 	public event = Events.MessageCreate as const;
 
@@ -19,19 +21,22 @@ export default class implements Event {
 				return;
 			}
 
+			const responses = container.resolve<AutoResponse[]>(kAutoresponses);
+
 			try {
-				if (["istextbased is not a function"].some((phrase) => message.content.toLowerCase().includes(phrase))) {
-					await message.reply({
-						content: [
-							"Use `v14.8.0` or newer of discord.js: `npm i discord.js@latest` *(more: <#769862166131245066>)*",
-						].join("\n"),
-					});
-				} else if (["istext is not a function"].some((phrase) => message.content.toLowerCase().includes(phrase))) {
-					await message.reply({
-						content: [
-							"Use `v13.14.0` or newer of discord.js: `npm i discord.js@v13-lts` *(more: <#769862166131245066>)*",
-						].join("\n"),
-					});
+				for (const response of responses) {
+					if (response.keyphrases.some((phrase) => phrase.length && message.content.toLowerCase().includes(phrase))) {
+						const payload = {
+							content: response.content,
+							allowedMentions: response.mention ? { repliedUser: true } : { parse: [] },
+						};
+
+						if (response.reply) {
+							await message.reply(payload);
+						} else {
+							await message.channel.send(payload);
+						}
+					}
 				}
 			} catch (error_) {
 				const error = error_ as Error;

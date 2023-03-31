@@ -1,0 +1,15 @@
+[text-v14]
+keyphrases = ["istextbased is not a function"]
+content = """
+Use `v14.8.0` or newer of discord.js: `npm i discord.js@latest` *(more: <#769862166131245066>)*
+"""
+mention = true
+reply = true
+
+[text-v13]
+keyphrases = ["istext is not a function"]
+content = """
+Use `v13.14.0` or newer of discord.js: `npm i discord.js@v13-lts` *(more: <#769862166131245066>)*
+"""
+mention = true
+reply = true

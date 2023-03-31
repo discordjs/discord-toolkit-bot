@@ -1,5 +1,7 @@
 import "reflect-metadata";
+import { readFileSync } from "node:fs";
 import { URL, fileURLToPath, pathToFileURL } from "node:url";
+import * as TOML from "@ltd/j-toml";
 import {
 	dynamicImport,
 	createCommands,
@@ -12,7 +14,9 @@ import {
 import type { CommandPayload, Event } from "@yuudachi/framework/types";
 import { Client, GatewayIntentBits, Options } from "discord.js";
 import readdirp from "readdirp";
-import { createWebhooks } from "./util/webhooks.js";
+import { kAutoresponses } from "./tokens.js";
+import type { AutoResponse } from "./util/autoresponses.js";
+import { createAutoResponses } from "./util/autoresponses.js";
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
@@ -28,7 +32,7 @@ const client = new Client({
 container.register(Client, { useValue: client });
 
 createCommands();
-createWebhooks();
+createAutoResponses();
 
 const commandFiles = readdirp(fileURLToPath(new URL("commands", import.meta.url)), {
 	fileFilter: "*.js",
@@ -39,7 +43,16 @@ const eventFiles = readdirp(fileURLToPath(new URL("events", import.meta.url)), {
 	fileFilter: "*.js",
 });
 
+const autoResponseData = readFileSync(fileURLToPath(new URL("../autoresponses/autoresponses.toml", import.meta.url)));
+
 try {
+	const autoResponses = container.resolve<AutoResponse[]>(kAutoresponses);
+	const parsedAutoResponses = TOML.parse(autoResponseData, 1, "\n");
+
+	for (const value of Object.values(parsedAutoResponses)) {
+		autoResponses.push(value as unknown as AutoResponse);
+	}
+
 	const commands = container.resolve<Map<string, Command<CommandPayload>>>(kCommands);
 
 	for await (const dir of commandFiles) {

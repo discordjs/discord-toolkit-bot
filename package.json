@@ -29,6 +29,7 @@
 		"utilities"
 	],
 	"dependencies": {
+		"@ltd/j-toml": "^1.38.0",
 		"@swc/helpers": "^0.4.11",
 		"@yuudachi/framework": "^0.1.1",
 		"dayjs": "^1.11.5",

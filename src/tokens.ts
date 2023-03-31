@@ -1,1 +1,1 @@
-export const kWebhooks = Symbol("Webhooks");
+export const kAutoresponses = Symbol("Autoresponses");
