@@ -25,12 +25,18 @@ export default class implements Event {
 						content: [
 							"Use `v14.8.0` or newer of discord.js: `npm i discord.js@latest` *(more: <#769862166131245066>)*",
 						].join("\n"),
+						allowedMentions: {
+							repliedUser: true,
+						},
 					});
 				} else if (["istext is not a function"].some((phrase) => message.content.toLowerCase().includes(phrase))) {
 					await message.reply({
 						content: [
 							"Use `v13.14.0` or newer of discord.js: `npm i discord.js@v13-lts` *(more: <#769862166131245066>)*",
 						].join("\n"),
+						allowedMentions: {
+							repliedUser: true,
+						},
 					});
 				}
 			} catch (error_) {
