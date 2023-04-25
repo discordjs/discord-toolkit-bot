@@ -38,7 +38,7 @@ export function formatBits<T extends bigint | number>(
 		kleur.white(`${headingPrefix} deconstruction for ${bits.bitfield}:`),
 		...entries.map(
 			(entry) =>
-				`${entry.represented ? kleur.green("[✔]") : kleur.red("[✖]")} ${entry.name} (${entry.bit}) 1<<${Math.log2(entry.bit)}`,
+				`${entry.represented ? kleur.green("[✔]") : kleur.red("[✖]")} ${entry.name} (${entry.bit}) 1<<${entry.bit.toString(2).length - 1}`,
 		),
 	].join("\n");
 }
