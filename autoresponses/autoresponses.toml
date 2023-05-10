@@ -3,6 +3,7 @@ keyphrases = ["istextbased is not a function"]
 content = """
 Use `v14.8.0` or newer of discord.js: `npm i discord.js@latest` *(more: <#769862166131245066>)*
 """
+discordJSVersions = ["v14"]
 mention = true
 reply = true
 
@@ -11,5 +12,16 @@ keyphrases = ["istext is not a function"]
 content = """
 Use `v13.14.0` or newer of discord.js: `npm i discord.js@v13-lts` *(more: <#769862166131245066>)*
 """
+discordJSVersions = ["v13"]
+mention = true
+reply = true
+
+[guild-members-me]
+keyphrases = ["guild.me", "<guild>.me"]
+content = """
+`<Guild>.me` is not a thing in v14. Use `<Guild>.members.me` instead.
+• [Update guide](https://discordjs.guide/additional-info/changes-in-v14.html) (use `CTRL` + `F` to search for the old method or property)
+"""
+discordJSVersions = ["v14"]
 mention = true
 reply = true
