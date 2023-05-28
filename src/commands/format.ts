@@ -36,9 +36,9 @@ export default class extends Command<typeof FormatContextCommand> {
 					endOfLine: "lf",
 					semi: true,
 					singleQuote: true,
-					filepath: `code.${match.groups!.lang ?? "ts"}`,
+					filepath: `code.${match.groups!.lang || "ts"}`,
 				});
-				codeBlocks.push(codeBlock(match.groups!.lang ?? "ts", formattedCode));
+				codeBlocks.push(codeBlock(match.groups!.lang || "ts", formattedCode));
 			} catch {
 				continue;
 			}
