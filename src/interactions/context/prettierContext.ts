@@ -1,6 +1,6 @@
 import { ApplicationCommandType } from "discord.js";
 
-export const FormatContextCommand = {
+export const PrettierContextCommand = {
 	type: ApplicationCommandType.Message,
-	name: "Format code",
+	name: "Prettier",
 } as const;
