@@ -5,6 +5,11 @@ import { format } from "prettier";
 import type { PrettierContextCommand } from "../interactions/context/prettierContext.js";
 import { DISCORD_MAX_LENGTH_MESSAGE } from "../util/constants.js";
 
+const NO_CODE_RESPONSE = {
+	content: "There is no code to format here.",
+	flags: MessageFlags.Ephemeral,
+} as const;
+
 export default class extends Command<typeof PrettierContextCommand> {
 	public constructor() {
 		super(["Prettier"]);
@@ -15,19 +20,13 @@ export default class extends Command<typeof PrettierContextCommand> {
 		args: ArgsParam<typeof PrettierContextCommand>,
 	): Promise<void> {
 		if (!args.message.content) {
-			await interaction.reply({
-				content: "There is no code to format here.",
-				flags: MessageFlags.Ephemeral,
-			});
+			await interaction.reply(NO_CODE_RESPONSE);
 			return;
 		}
 
 		const matches = args.message.content.matchAll(/```(?<lang>\w*)\n?(?<code>.+?)\n?```/gs);
 		if (!matches) {
-			await interaction.reply({
-				content: "There is no code to format here.",
-				flags: MessageFlags.Ephemeral,
-			});
+			await interaction.reply(NO_CODE_RESPONSE);
 			return;
 		}
 
