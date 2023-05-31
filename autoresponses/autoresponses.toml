@@ -13,3 +13,11 @@ Use `v13.14.0` or newer of discord.js: `npm i discord.js@v13-lts` *(more: <#7698
 """
 mention = true
 reply = true
+
+[max-commands]
+keyphrases = ["max number of daily application command creates", "[30034]"]
+content = """
+This is an issue with the Discord API, devs are aware (nothing you can do) *(discussion: <#1113282755418136667>)*
+"""
+mention = true
+reply = true
