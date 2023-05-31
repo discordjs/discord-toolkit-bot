@@ -49,8 +49,15 @@ try {
 	const autoResponses = container.resolve<AutoResponse[]>(kAutoresponses);
 	const parsedAutoResponses = TOML.parse(autoResponseData, 1, "\n");
 
-	for (const value of Object.values(parsedAutoResponses)) {
-		autoResponses.push(value as unknown as AutoResponse);
+	for (const [key, value] of Object.entries(parsedAutoResponses)) {
+		const autoResponse = value as unknown as AutoResponse;
+		logger.info(
+			{
+				autopresponse: { phrases: autoResponse.keyphrases },
+			},
+			`Registering autoresponse: ${key}`,
+		);
+		autoResponses.push(autoResponse);
 	}
 
 	const commands = container.resolve<Map<string, Command<CommandPayload>>>(kCommands);
