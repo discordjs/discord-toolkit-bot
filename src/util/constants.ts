@@ -15,7 +15,7 @@ export const DATE_FORMAT_LOGFILE = "YYYY-MM-DD_HH-mm-ss";
 export const DATE_FORMAT_WITH_SECONDS = "YYYY/MM/DD HH:mm:ss";
 
 export const DISCORD_USER_FLAG_SPAMMER = 1 << 20;
-export const DISCORD_MAX_LENGTH_MESSAGE = 4_000;
+export const DISCORD_MAX_LENGTH_MESSAGE = 2_000;
 
 export const TAB = "\u200B \u200B \u200B" as const;
 

@@ -10,6 +10,7 @@ import {
 	UserInfoContextCommand,
 	DeleteCommandContextCommand,
 	PrettierContextCommand,
+	PrettierFileContextCommand,
 } from "./interactions/index.js";
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
@@ -25,6 +26,7 @@ try {
 		BitfieldLookupCommand,
 		DeleteCommandContextCommand,
 		PrettierContextCommand,
+		PrettierFileContextCommand,
 	];
 
 	await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID!), {
