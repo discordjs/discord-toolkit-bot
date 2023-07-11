@@ -3,7 +3,7 @@ import { setTimeout as wait } from "node:timers/promises";
 import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import type { ThreadChannel } from "discord.js";
-import { Events, Client } from "discord.js";
+import { Events, Client, ComponentType, ButtonStyle } from "discord.js";
 import { injectable } from "tsyringe";
 import { ASSISTCHANNELS } from "../util/constants.js";
 
@@ -30,7 +30,22 @@ export default class implements Event {
 						"- Show your code!",
 						"- Explain what exactly your issue is.",
 						"- Not a discord.js issue? Check out <#237743386864517122>.",
+						"- Issue solved? Press the button!",
 					].join("\n"),
+					components: [
+						{
+							type: ComponentType.ActionRow,
+							components: [
+								{
+									type: ComponentType.Button,
+									customId: "solved",
+									style: ButtonStyle.Secondary,
+									label: "Solved",
+									emoji: "✅",
+								},
+							],
+						},
+					],
 				});
 			} catch (error_) {
 				const error = error_ as Error;

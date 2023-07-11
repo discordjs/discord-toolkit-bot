@@ -1,7 +1,8 @@
 import { transformInteraction, kCommands, type CommandMap, logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
-import { ApplicationCommandType, Events, Client } from "discord.js";
+import { ApplicationCommandType, Events, Client, PermissionFlagsBits, ButtonStyle, ComponentType } from "discord.js";
 import { injectable, inject } from "tsyringe";
+import { CUSTOM_ID_SEPARATOR } from "../util/constants.js";
 
 @injectable()
 export default class implements Event {
@@ -13,16 +14,72 @@ export default class implements Event {
 
 	public execute() {
 		this.client.on(this.event, async (interaction) => {
+			if (!interaction.inCachedGuild()) {
+				return;
+			}
+
+			if (interaction.isButton()) {
+				try {
+					const [idPrefix] = interaction.customId.split(CUSTOM_ID_SEPARATOR);
+					switch (idPrefix) {
+						case "solved": {
+							const { channel, member, channelId } = interaction;
+							if (!channel?.isThread()) {
+								return;
+							}
+
+							if (
+								channel.ownerId !== interaction.user.id &&
+								!member.permissionsIn(channelId).has(PermissionFlagsBits.ManageMessages)
+							) {
+								await interaction.reply({
+									ephemeral: true,
+									content: "Only the original poster or support staff can close a thread!",
+								});
+								return;
+							}
+
+							await interaction.update({
+								components: [
+									{
+										type: ComponentType.ActionRow,
+										components: [
+											{
+												type: ComponentType.Button,
+												customId: "solved",
+												style: ButtonStyle.Secondary,
+												label: "Marked as resolved",
+												emoji: "🔒",
+												disabled: true,
+											},
+										],
+									},
+								],
+							});
+
+							await channel.edit({
+								locked: true,
+								archived: true,
+							});
+
+							break;
+						}
+
+						default:
+							break;
+					}
+				} catch (error_) {
+					const error = error_ as Error;
+					logger.error(error, error.message);
+				}
+			}
+
 			if (
 				!interaction.isCommand() &&
 				!interaction.isUserContextMenuCommand() &&
 				!interaction.isMessageContextMenuCommand() &&
 				!interaction.isAutocomplete()
 			) {
-				return;
-			}
-
-			if (!interaction.inCachedGuild()) {
 				return;
 			}
 
