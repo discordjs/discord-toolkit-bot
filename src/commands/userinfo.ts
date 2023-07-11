@@ -119,7 +119,7 @@ export function applyMemberInfo(embed: APIEmbed, member: GuildMember): string[] 
 		...(embed.fields ?? []),
 		{
 			name: "Member info",
-			value: memberInfo.map((part) => `• ${part}`).join("\n"),
+			value: memberInfo.map((part) => `- ${part}`).join("\n"),
 		},
 	];
 
@@ -177,7 +177,7 @@ export async function applyUserInfo(embed: APIEmbed, user: User): Promise<string
 		...(embed.fields ?? []),
 		{
 			name: "User info",
-			value: userInfo.map((info) => `• ${info}`).join("\n"),
+			value: userInfo.map((info) => `- ${info}`).join("\n"),
 		},
 	];
 
@@ -225,7 +225,7 @@ export async function applyApplicationInfo(embed: APIEmbed, user: User) {
 				...(embed.fields ?? []),
 				{
 					name: "App Info",
-					value: info.map((line) => `• ${line}`).join("\n"),
+					value: info.map((line) => `- ${line}`).join("\n"),
 				},
 			];
 		}
@@ -265,7 +265,7 @@ export default class extends Command<typeof UserInfoCommand> {
 				...(embed.fields ?? []),
 				{
 					name: "Notices",
-					value: notices.map((notice) => `• ${notice}`).join("\n"),
+					value: notices.map((notice) => `- ${notice}`).join("\n"),
 				},
 			];
 		}

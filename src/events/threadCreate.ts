@@ -25,11 +25,11 @@ export default class implements Event {
 
 				await thread.send({
 					content: [
-						"• What's your exact discord.js `npm list discord.js` and node `node -v` version?",
-						"• Post the full error stack trace, not just the top part!",
-						"• Show your code!",
-						"• Explain what exactly your issue is.",
-						"• Not a discord.js issue? Check out <#237743386864517122>.",
+						"- What's your exact discord.js `npm list discord.js` and node `node -v` version?",
+						"- Post the full error stack trace, not just the top part!",
+						"- Show your code!",
+						"- Explain what exactly your issue is.",
+						"- Not a discord.js issue? Check out <#237743386864517122>.",
 					].join("\n"),
 				});
 			} catch (error_) {
