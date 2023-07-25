@@ -34,7 +34,7 @@ export default class implements Event {
 							) {
 								await interaction.reply({
 									ephemeral: true,
-									content: "Only the original poster or support staff can close a thread!",
+									content: "Only the original poster or support staff can mark a post as resolved!",
 								});
 								return;
 							}
@@ -48,7 +48,7 @@ export default class implements Event {
 												type: ComponentType.Button,
 												customId: "solved",
 												style: ButtonStyle.Secondary,
-												label: "Marked as resolved",
+												label: "Resolved",
 												emoji: "🔒",
 												disabled: true,
 											},

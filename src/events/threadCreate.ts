@@ -20,18 +20,27 @@ export default class implements Event {
 			[ThreadChannel, boolean]
 		>) {
 			try {
-				await wait(2_000);
 				if (!newlyCreated || !ASSISTCHANNELS.includes(thread.parentId ?? "")) continue;
+				await wait(2_000);
+				const parts: string[] = [];
+
+				if (thread.parent?.name.includes("djs")) {
+					parts.push(
+						"- What's your exact discord.js `npm list discord.js` and node `node -v` version?",
+						"- Not a discord.js issue? Check out <#1081585952654360687>.",
+					);
+				}
+
+				parts.push(
+					"- Consider reading <#1115899560183730286> to improve your question!",
+					"- Explain what exactly your issue is.",
+					"- Post the full error stack trace, not just the top part!",
+					"- Show your code!",
+					"- Issue solved? Press the button!",
+				);
 
 				await thread.send({
-					content: [
-						"- What's your exact discord.js `npm list discord.js` and node `node -v` version?",
-						"- Post the full error stack trace, not just the top part!",
-						"- Show your code!",
-						"- Explain what exactly your issue is.",
-						"- Not a discord.js issue? Check out <#237743386864517122>.",
-						"- Issue solved? Press the button!",
-					].join("\n"),
+					content: parts.join("\n"),
 					components: [
 						{
 							type: ComponentType.ActionRow,
@@ -39,9 +48,8 @@ export default class implements Event {
 								{
 									type: ComponentType.Button,
 									customId: "solved",
-									style: ButtonStyle.Secondary,
-									label: "Solved",
-									emoji: "✅",
+									style: ButtonStyle.Primary,
+									label: "Mark post as solved",
 								},
 							],
 						},
