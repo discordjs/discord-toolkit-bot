@@ -1,4 +1,4 @@
-import { transformInteraction, kCommands, type CommandMap, logger } from "@yuudachi/framework";
+import { kCommands, type CommandMap, logger, transformApplicationInteraction } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import { ApplicationCommandType, Events, Client, PermissionFlagsBits, ButtonStyle, ComponentType } from "discord.js";
 import { injectable, inject } from "tsyringe";
@@ -40,6 +40,10 @@ export default class implements Event {
 							}
 
 							await interaction.update({
+								content: [
+									interaction.message.content,
+									`- \`✅\` Marked as resolved by ${interaction.user.id === channel.ownerId ? "OP" : "staff"}`,
+								].join("\n"),
 								components: [
 									{
 										type: ComponentType.ActionRow,
@@ -60,6 +64,7 @@ export default class implements Event {
 							await channel.edit({
 								locked: true,
 								archived: true,
+								reason: `Resolved by ${interaction.user.username} (${interaction.user.id})`,
 							});
 
 							break;
@@ -96,10 +101,10 @@ export default class implements Event {
 							);
 
 							if (isAutocomplete) {
-								await command.autocomplete(interaction, transformInteraction(interaction.options.data), "");
+								await command.autocomplete(interaction, transformApplicationInteraction(interaction.options.data), "");
 								break;
 							} else {
-								await command.chatInput(interaction, transformInteraction(interaction.options.data), "");
+								await command.chatInput(interaction, transformApplicationInteraction(interaction.options.data), "");
 								break;
 							}
 						}
@@ -110,7 +115,7 @@ export default class implements Event {
 								`Executing message context command ${interaction.commandName}`,
 							);
 
-							await command.messageContext(interaction, transformInteraction(interaction.options.data), "");
+							await command.messageContext(interaction, transformApplicationInteraction(interaction.options.data), "");
 							break;
 						}
 
@@ -120,7 +125,7 @@ export default class implements Event {
 								`Executing user context command ${interaction.commandName}`,
 							);
 
-							await command.userContext(interaction, transformInteraction(interaction.options.data), "");
+							await command.userContext(interaction, transformApplicationInteraction(interaction.options.data), "");
 							break;
 						}
 

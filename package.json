@@ -31,17 +31,17 @@
 	"dependencies": {
 		"@ltd/j-toml": "^1.38.0",
 		"@swc/helpers": "^0.5.1",
-		"@yuudachi/framework": "^0.1.1",
+		"@yuudachi/framework": "^0.2.10",
 		"dayjs": "^1.11.5",
-		"discord.js": "^14.8.0",
+		"discord.js": "^14.13.0",
 		"env-cmd": "^10.1.0",
 		"kleur": "^4.1.5",
 		"pino": "^8.11.0",
 		"prettier": "^2.7.1",
 		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
-		"tsyringe": "^4.7.0",
-		"undici": "^5.20.0"
+		"tsyringe": "^4.8.0",
+		"undici": "^5.23.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.5",
@@ -51,13 +51,13 @@
 		"@types/node": "^18.8.3",
 		"@types/prettier": "^2.7.2",
 		"del-cli": "^5.0.0",
-		"eslint": "^8.24.0",
-		"eslint-config-neon": "^0.1.34",
+		"eslint": "^8.48.0",
+		"eslint-config-neon": "^0.1.56",
 		"husky": "^8.0.1",
 		"is-ci": "^3.0.1",
 		"lint-staged": "^13.2.2",
 		"rimraf": "^3.0.2",
-		"typescript": "^4.8.4"
+		"typescript": "^5.1.6"
 	},
 	"engines": {
 		"node": ">=18.7.0"
