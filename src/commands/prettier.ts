@@ -66,7 +66,10 @@ export default class extends Command<typeof PrettierContextCommand | typeof Pret
 				results.map(({ code, lang }) => codeBlock(lang ?? "", code)).join(""),
 				DISCORD_MAX_LENGTH_MESSAGE - 12,
 			);
-			const suffixCodeBlockLength = [...shortened.slice(-3)].filter((char) => char === "`").length;
+			const suffixCodeBlockLength = shortened
+				.slice(-3)
+				.split("")
+				.filter((char) => char === "`").length;
 
 			await interaction.reply({
 				content: `${shortened}${"`".repeat(3 - suffixCodeBlockLength)}`,
