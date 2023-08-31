@@ -52,7 +52,7 @@
 		"@types/prettier": "^2.7.2",
 		"del-cli": "^5.0.0",
 		"eslint": "^8.48.0",
-		"eslint-config-neon": "^0.1.56",
+		"eslint-config-neon": "0.1.54",
 		"husky": "^8.0.1",
 		"is-ci": "^3.0.1",
 		"lint-staged": "^13.2.2",
