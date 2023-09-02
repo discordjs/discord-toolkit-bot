@@ -1,6 +1,7 @@
 import { Command } from "@yuudachi/framework";
 import type { InteractionParam, ArgsParam, CommandMethod } from "@yuudachi/framework/types";
-import { GatewayIntentBits, codeBlock, IntentsBitField, type BitField } from "discord.js";
+import type { APIEmbed } from "discord.js";
+import { GatewayIntentBits, codeBlock, IntentsBitField, type BitField, inlineCode } from "discord.js";
 import kleur from "kleur";
 import type { IntentsLookupContextCommand } from "../interactions/context/intentsLookupContext.js";
 import type { BitfieldLookupCommand } from "../interactions/slash/bitfieldLookup.js";
@@ -17,11 +18,11 @@ type BitEntry = {
 
 type BitProducer<T extends bigint | number> = (p1: string) => T;
 
-export function formatBits<T extends bigint | number>(
+export function formatBitsToEmbed<T extends bigint | number>(
 	bits: BitField<string, T>,
 	bitProducer: BitProducer<T>,
 	headingPrefix: string,
-) {
+): APIEmbed {
 	const entries: BitEntry[] = [];
 
 	for (const [key, val] of Object.entries(bits.serialize())) {
@@ -34,15 +35,20 @@ export function formatBits<T extends bigint | number>(
 		}
 	}
 
-	return [
-		kleur.white(`${headingPrefix} deconstruction for ${bits.bitfield}:`),
-		...entries.map(
-			(entry) =>
-				`${entry.represented ? kleur.green("[✔]") : kleur.red("[✖]")} ${entry.name} (${entry.bit}) 1<<${
-					entry.bit.toString(2).length - 1
-				}`,
+	return {
+		title: `${headingPrefix} deconstruction for bitfield ${inlineCode(String(bits.bitfield))}`,
+		description: codeBlock(
+			"ansi",
+			entries
+				.map(
+					(entry) =>
+						`${entry.represented ? kleur.green("[✔]") : kleur.red("[✖]")} ${entry.name} (${entry.bit}) 1<<${
+							entry.bit.toString(2).length - 1
+						}`,
+				)
+				.join("\n"),
 		),
-	].join("\n");
+	};
 }
 
 export default class extends Command<typeof BitfieldLookupCommand | typeof IntentsLookupContextCommand> {
@@ -86,14 +92,13 @@ export default class extends Command<typeof BitfieldLookupCommand | typeof Inten
 
 		const bitnumeral = Number.parseInt(res[1]!, 10);
 		await interaction.reply({
-			content: codeBlock(
-				"ansi",
-				formatBits(
+			embeds: [
+				formatBitsToEmbed(
 					new IntentsBitField(bitnumeral),
 					(key: string) => GatewayIntentBits[key as keyof typeof GatewayIntentBits],
 					"Gateway Intent",
 				),
-			),
+			],
 			ephemeral: true,
 		});
 	}

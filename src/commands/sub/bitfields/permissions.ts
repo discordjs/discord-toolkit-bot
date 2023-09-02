@@ -1,7 +1,7 @@
 import type { InteractionParam, ArgsParam } from "@yuudachi/framework/types";
-import { codeBlock, inlineCode, PermissionFlagsBits, PermissionsBitField } from "discord.js";
+import { inlineCode, PermissionFlagsBits, PermissionsBitField } from "discord.js";
 import type { BitfieldLookupCommand } from "../../../interactions/slash/bitfieldLookup.js";
-import { formatBits } from "../../bitfields.js";
+import { formatBitsToEmbed } from "../../bitfields.js";
 
 export async function permissions(
 	interaction: InteractionParam,
@@ -16,14 +16,13 @@ export async function permissions(
 	}
 
 	await interaction.reply({
-		content: codeBlock(
-			"ansi",
-			formatBits(
+		embeds: [
+			formatBitsToEmbed(
 				new PermissionsBitField(BigInt(args.bitfield)),
 				(key: string) => PermissionFlagsBits[key as keyof typeof PermissionFlagsBits],
 				"Permission",
 			),
-		),
+		],
 		ephemeral: true,
 	});
 }
