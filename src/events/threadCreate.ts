@@ -1,5 +1,4 @@
 import { on } from "node:events";
-import { setTimeout as wait } from "node:timers/promises";
 import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import type { ThreadChannel } from "discord.js";
