@@ -20,8 +20,8 @@ export default class implements Event {
 		>) {
 			try {
 				if (!newlyCreated || !ASSISTCHANNELS.includes(thread.parentId ?? "")) continue;
-				const recived = await thread.awaitMessages({ max: 1, time: 2_000, errors: ["time"] }).catch(() => null);
-				if (!recived) continue;
+				const received = await thread.awaitMessages({ max: 1, time: 2_000, errors: ["time"] }).catch(() => null);
+				if (!received) continue;
 				const parts: string[] = [];
 
 				if (thread.parent?.name.includes("djs")) {
