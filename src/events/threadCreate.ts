@@ -20,7 +20,7 @@ export default class implements Event {
 		>) {
 			try {
 				if (!newlyCreated || !ASSISTCHANNELS.includes(thread.parentId ?? "")) continue;
-				const received = await thread.awaitMessages({ max: 1, time: 2_000, errors: ["time"] }).catch(() => null);
+				const received = await thread.awaitMessages({ max: 1, time: 60_000, errors: ["time"] }).catch(() => null);
 				if (!received) continue;
 				const parts: string[] = [];
 
