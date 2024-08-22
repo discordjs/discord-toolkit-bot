@@ -24,7 +24,13 @@ export default class implements Event {
 				await wait(2_000);
 				const parts: string[] = [];
 
-				if (thread.parent?.name.includes("djs")) {
+				if (thread.parent?.name.includes("voice")) {
+					parts.push(
+						"- What are your intents? `GuildVoiceStates` is **required** to receive voice data!",
+						"- Show what dependencies you are using -- `generateDependencyReport()` is exported from `@discordjs/voice`.",
+						"- Try looking at common examples: <https://github.com/discordjs/voice-examples>.",
+					);
+				} else if (thread.parent?.name.includes("djs")) {
 					parts.push(
 						"- What's your exact discord.js `npm list discord.js` and node `node -v` version?",
 						"- Not a discord.js issue? Check out <#1081585952654360687>.",
