@@ -27,8 +27,8 @@ export default class implements Event {
 				if (thread.parent?.name.includes("voice")) {
 					parts.push(
 						"- What are your intents? `GuildVoiceStates` is **required** to receive voice data!",
-						"- Show what dependencies you are using -- `generateDependencyReport()` is exported from `@discord.js/voice`.",
-						"- Try looking at common examples: <https://github.com/discord.js/voice-examples>.",
+						"- Show what dependencies you are using -- `generateDependencyReport()` is exported from `@discordjs/voice`.",
+						"- Try looking at common examples: <https://github.com/discordjs/voice-examples>.",
 					);
 				} else if (thread.parent?.name.includes("djs")) {
 					parts.push(
