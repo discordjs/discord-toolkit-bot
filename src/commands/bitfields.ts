@@ -77,10 +77,10 @@ export default class extends Command<typeof BitfieldLookupCommand | typeof Inten
 		args: ArgsParam<typeof IntentsLookupContextCommand>,
 	): Promise<void> {
 		const res =
-			/intents:.*?(?<bits>\d{1,7})/gi.exec(args.message.content) ??
-			/intents\((?<bits>\d{1,7})\)/gi.exec(args.message.content) ??
-			/intents.*?(?<bits>\d{1,7})/gi.exec(args.message.content) ??
-			/(?:^|[\s`])(?<bits>\d{1,7}?)(?:$|[\s`])/gi.exec(args.message.content);
+			/intents:.*?(?<bits>\d{1,10})/gi.exec(args.message.content) ??
+			/intents\((?<bits>\d{1,10})\)/gi.exec(args.message.content) ??
+			/intents.*?(?<bits>\d{1,10})/gi.exec(args.message.content) ??
+			/(?:^|[\s`])(?<bits>\d{1,10}?)(?:$|[\s`])/gi.exec(args.message.content);
 
 		if (!res) {
 			await interaction.reply({
