@@ -1,6 +1,6 @@
 import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
-import { Events, Client } from "discord.js";
+import { Events, Client, MessageFlags, PermissionFlagsBits } from "discord.js";
 import { container, injectable } from "tsyringe";
 import { kAutoresponses } from "../tokens.js";
 import type { AutoResponse } from "../util/autoresponses.js";
@@ -19,6 +19,13 @@ export default class implements Event {
 		this.client.on(this.event, async (message) => {
 			if (message.author?.bot) {
 				return;
+			}
+
+			if (
+				message.content.includes("://discord.com") &&
+				(message.guild?.members.me?.permissionsIn(message.channelId).has(PermissionFlagsBits.ManageMessages) ?? false)
+			) {
+				await message.edit({ flags: MessageFlags.SuppressEmbeds }).catch(() => null);
 			}
 
 			const responses = container.resolve<AutoResponse[]>(kAutoresponses);
