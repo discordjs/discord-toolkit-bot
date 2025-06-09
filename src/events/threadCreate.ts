@@ -1,5 +1,4 @@
 import { on } from "node:events";
-import { setTimeout as wait } from "node:timers/promises";
 import { logger } from "@yuudachi/framework";
 import type { Event } from "@yuudachi/framework/types";
 import type { ThreadChannel } from "discord.js";
@@ -21,7 +20,8 @@ export default class implements Event {
 		>) {
 			try {
 				if (!newlyCreated || !ASSISTCHANNELS.includes(thread.parentId ?? "")) continue;
-				await wait(2_000);
+				const received = await thread.awaitMessages({ max: 1, time: 60_000, errors: ["time"] }).catch(() => null);
+				if (!received) continue;
 				const parts: string[] = [];
 
 				if (thread.parent?.name.includes("voice")) {
