@@ -1,28 +1,5 @@
-export enum Colors {
-	White = 0xffffff,
-	Red = 0xff5c5c,
-	Orange = 0xf79454,
-	Yellow = 0xffdb5c,
-	Green = 0x5cff9d,
-	Blue = 0x5c6cff,
-	Pink = 0xb75cff,
-	Dark = 0x2f3136,
-	DiscordSuccess = 0x3ba55d,
-	DiscordDanger = 0xed4245,
-}
-
-export const DATE_FORMAT_LOGFILE = "YYYY-MM-DD_HH-mm-ss";
-export const DATE_FORMAT_WITH_SECONDS = "YYYY/MM/DD HH:mm:ss";
-
-export const DISCORD_USER_FLAG_SPAMMER = 1 << 20;
-export const DISCORD_MAX_LENGTH_MESSAGE = 2_000;
-
-export const TAB = "\u200B \u200B \u200B" as const;
-
-export const EMOJI_NEWBIE = "<:newbie:962332319623049226>" as const;
-export const ASSISTCHANNELS = ["986520997006032896", "998942774994927646", "1081585952654360687"];
-
+export const SUPPORT_CHANNEL_VOICE = "998942774994927646" as const;
+export const SUPPORT_CHANNEL = "986520997006032896" as const;
+export const SUPPORT_CHANNEL_OTHER = "1081585952654360687" as const;
+export const ASSISTCHANNELS = [SUPPORT_CHANNEL, SUPPORT_CHANNEL_VOICE, SUPPORT_CHANNEL_OTHER] as string[];
 export const CUSTOM_ID_SEPARATOR = ":" as const;
-
-export const URL_REGEX =
-	/(?<url>https?:\/\/(?:www\.|(?!www))[\dA-Za-z][\dA-Za-z-]+[\dA-Za-z]\.\S{2,}|www\.[\dA-Za-z][\dA-Za-z-]+[\dA-Za-z]\.\S{2,}|https?:\/\/(?:www\.|(?!www))[\dA-Za-z]+\.\S{2,}|www\.[\dA-Za-z]+\.\S{2,})/g;

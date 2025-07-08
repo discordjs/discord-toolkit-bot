@@ -1,40 +1,23 @@
 import "reflect-metadata";
 import process from "node:process";
-import { logger } from "@yuudachi/framework";
-import { Routes, REST } from "discord.js";
-import {
-	SnowflakeInfoCommand,
-	BitfieldLookupCommand,
-	IntentsLookupContextCommand,
-	UserInfoCommand,
-	UserInfoContextCommand,
-	DeleteCommandContextCommand,
-	PrettierContextCommand,
-	PrettierFileContextCommand,
-} from "./interactions/index.js";
+import { REST } from "@discordjs/rest";
+import { Routes } from "discord-api-types/v10";
+import { IntentsLookupContextCommand } from "./interactions/context/intentsLookupContext.js";
+import { BitfieldLookupCommand } from "./interactions/slash/bitfieldLookup.js";
 
 const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
 
 try {
-	logger.info("Start refreshing interaction (/) commands.");
+	console.info("Start refreshing interaction (/) commands.");
 
-	const body: unknown[] = [
-		UserInfoCommand,
-		IntentsLookupContextCommand,
-		SnowflakeInfoCommand,
-		UserInfoContextCommand,
-		BitfieldLookupCommand,
-		DeleteCommandContextCommand,
-		PrettierContextCommand,
-		PrettierFileContextCommand,
-	];
+	const body: unknown[] = [IntentsLookupContextCommand, BitfieldLookupCommand];
 
 	await rest.put(Routes.applicationCommands(process.env.DISCORD_CLIENT_ID!), {
 		body,
 	});
 
-	logger.info(`Successfully reloaded interaction commands.`);
+	console.info(`Successfully reloaded interaction commands.`);
 } catch (error_) {
 	const error = error_ as Error;
-	logger.error(error.message, error);
+	console.error(error.message, error);
 }

@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionType, ApplicationCommandType } from "discord.js";
+import { ApplicationCommandOptionType, ApplicationCommandType } from "discord-api-types/v10";
 
 export const BitfieldLookupCommand = {
 	type: ApplicationCommandType.ChatInput,

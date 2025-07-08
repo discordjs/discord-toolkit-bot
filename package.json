@@ -24,24 +24,23 @@
 	"keywords": [
 		"discord",
 		"discordapp",
-		"discord.js",
 		"slashcommand",
 		"utilities"
 	],
 	"dependencies": {
+		"@discordjs/core": "^2.2.0",
+		"@discordjs/formatters": "^0.6.1",
+		"@discordjs/rest": "^2.5.1",
+		"@discordjs/ws": "^2.0.3",
 		"@ltd/j-toml": "^1.38.0",
 		"@swc/helpers": "^0.5.1",
-		"@yuudachi/framework": "^0.2.10",
-		"dayjs": "^1.11.5",
-		"discord.js": "^14.13.0",
+		"discord-api-types": "^0.38.15",
 		"env-cmd": "^10.1.0",
 		"kleur": "^4.1.5",
 		"pino": "^8.11.0",
 		"prettier": "^2.7.1",
-		"readdirp": "^3.6.0",
 		"reflect-metadata": "^0.1.13",
-		"tsyringe": "^4.8.0",
-		"undici": "^5.29.0"
+		"tsyringe": "^4.8.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.5",
