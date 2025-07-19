@@ -128,9 +128,21 @@ client.on(GatewayDispatchEvents.ThreadCreate, async ({ data: channel }) => {
 		return;
 	}
 
+	const receivedAt = Date.now();
+
 	// Messages can only be sent after the thread starter message has arrived.
 	// This can take substantial amounts of time after thread create in the case of large attachments
-	const collected = await waitForMessage(channel.id, 10_000).catch(() => null);
+	const collected = await waitForMessage(channel.id, 10_000).catch((error: Error) => {
+		const failedAt = Date.now();
+		const failedAfterSeconds = (failedAt - receivedAt) / 1_000;
+		logger.info(
+			error,
+			`Failed while waiting for a message in channel ${channel.id}: ${
+				error.message
+			}, failed after: ${failedAfterSeconds.toFixed(2)}s`,
+		);
+	});
+
 	if (!collected) {
 		return;
 	}
