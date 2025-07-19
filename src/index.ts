@@ -23,7 +23,7 @@ import { ComponentType, InteractionType } from "discord-api-types/v9";
 import { pino } from "pino";
 import { IntentsLookupContextCommand } from "./interactions/context/intentsLookupContext.js";
 import { BitfieldLookupCommand } from "./interactions/slash/bitfieldLookup.js";
-import { formatBits } from "./util/bits.js";
+import { formatBits, parseBits } from "./util/bits.js";
 import { ASSISTCHANNELS, SUPPORT_CHANNEL, SUPPORT_CHANNEL_VOICE } from "./util/constants.js";
 
 type AutoResponse = {
@@ -69,26 +69,30 @@ client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
 	}
 
 	if (message.content.includes("://discord.com")) {
-		void client.api.channels.editMessage(message.channel_id, message.id, {
-			flags: (message.flags ?? 0) | MessageFlags.SuppressEmbeds,
-		});
+		await client.api.channels
+			.editMessage(message.channel_id, message.id, {
+				flags: (message.flags ?? 0) | MessageFlags.SuppressEmbeds,
+			})
+			.catch(() => null);
 	}
 
 	for (const response of autoResponses) {
 		if (response.keyphrases.some((phrase) => phrase.length && message.content.toLowerCase().includes(phrase))) {
-			await client.api.channels.createMessage(message.channel_id, {
-				content: response.content,
-				allowed_mentions: response.mention ? { replied_user: true } : { parse: [] },
-				message_reference: response.reply
-					? {
-							message_id: message.id,
-							channel_id: message.channel_id,
-							guild_id: message.guild_id,
-							type: MessageReferenceType.Default,
-							fail_if_not_exists: false,
-					  }
-					: undefined,
-			});
+			await client.api.channels
+				.createMessage(message.channel_id, {
+					content: response.content,
+					allowed_mentions: response.mention ? { replied_user: true } : { parse: [] },
+					message_reference: response.reply
+						? {
+								message_id: message.id,
+								channel_id: message.channel_id,
+								guild_id: message.guild_id,
+								type: MessageReferenceType.Default,
+								fail_if_not_exists: false,
+						  }
+						: undefined,
+				})
+				.catch(() => null);
 		}
 	}
 });
@@ -217,7 +221,7 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction })
 			});
 
 			await client.api.interactions.updateMessage(interaction.id, interaction.token, {});
-			void client.rest.patch(Routes.channel(interaction.channel.id), {
+			await client.rest.patch(Routes.channel(interaction.channel.id), {
 				body: {
 					archived: true,
 					locked: true,
@@ -258,9 +262,18 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction })
 				return;
 			}
 
-			const bits = Number.parseInt(res[1]!, 10);
-			const formatted = formatBits(bits, GatewayIntentBits, "Gateway Intent");
+			const _bits = Number.parseInt(res[1]!, 10);
+			const bits = Number.isNaN(_bits) ? null : parseBits(_bits);
 
+			if (!bits) {
+				await client.api.interactions.reply(interaction.id, interaction.token, {
+					flags: MessageFlags.Ephemeral,
+					content: "Found a structure with expected Gatway Intents but could not resolve it.",
+				});
+				return;
+			}
+
+			const formatted = formatBits(bits);
 			await client.api.interactions.reply(interaction.id, interaction.token, {
 				flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
 				components: [formatted],
@@ -283,23 +296,23 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction })
 				return;
 			}
 
-			const bits = bitsOption.value;
+			const _bits = bitsOption.value;
 
-			if (typeof bits === "boolean") {
+			if (typeof _bits === "boolean") {
 				return;
 			}
 
-			if (Number.isNaN(Number.parseInt(String(bits), 10))) {
+			const parsedBits = parseBits(_bits);
+
+			if (!parsedBits) {
 				await client.api.interactions.reply(interaction.id, interaction.token, {
 					flags: MessageFlags.Ephemeral,
-					content: `Could not resolve ${inlineCode(String(bits))} to a bit field.`,
+					content: `Could not resolve ${inlineCode(String(_bits))} to a supported bit field.`,
 				});
 				return;
 			}
 
-			const serializer = sub.name === "intents" ? GatewayIntentBits : PermissionFlagsBits;
-			const prefix = sub.name === "intents" ? "Gateway Intents" : "Permission";
-			const formatted = formatBits(typeof bits === "string" ? BigInt(bits) : bits, serializer, prefix);
+			const formatted = formatBits(parsedBits);
 
 			await client.api.interactions.reply(interaction.id, interaction.token, {
 				flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
@@ -310,11 +323,12 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction })
 		}
 	}
 
-	void client.api.interactions.reply(interaction.id, interaction.token, {
-		content: "This command is currently not available, check back later!",
-		flags: MessageFlags.Ephemeral,
-	});
-	console.log(interaction);
+	await client.api.interactions
+		.reply(interaction.id, interaction.token, {
+			content: "This command is currently not available, check back later!",
+			flags: MessageFlags.Ephemeral,
+		})
+		.catch(() => null);
 });
 
 process.on("uncaughtException", (error) => {
