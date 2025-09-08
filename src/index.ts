@@ -1,15 +1,12 @@
 import "reflect-metadata";
 import { readFileSync } from "node:fs";
 import process from "node:process";
-import { setTimeout } from "node:timers";
 import { URL, fileURLToPath } from "node:url";
-import type { ToEventProps } from "@discordjs/core";
 import { Client, GatewayDispatchEvents, GatewayIntentBits, MessageFlags } from "@discordjs/core";
 import { inlineCode } from "@discordjs/formatters";
 import { REST } from "@discordjs/rest";
 import { WebSocketManager } from "@discordjs/ws";
 import * as TOML from "@ltd/j-toml";
-import type { GatewayMessageCreateDispatchData } from "discord-api-types/v10";
 import {
 	ApplicationCommandOptionType,
 	ApplicationCommandType,
@@ -97,58 +94,26 @@ client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
 	}
 });
 
-/**
- * Wait for message in the provided channel
- *
- * @param channelId - The id of the channel to listen in
- * @param timeoutMs - The time in milliseconds to wait until the listener is aborted
- * @returns The received message
- */
-async function waitForMessage(channelId: string, timeoutMs?: number) {
-	return new Promise((resolve, reject) => {
-		const callback = ({ data: message }: ToEventProps<GatewayMessageCreateDispatchData>) => {
-			if (message.channel_id === channelId) {
-				resolve(message);
-			}
-		};
-
-		client.once(GatewayDispatchEvents.MessageCreate, callback);
-
-		if (timeoutMs) {
-			setTimeout(() => {
-				client.off(GatewayDispatchEvents.MessageCreate, callback);
-				reject(new Error("time"));
-			}, timeoutMs);
-		}
-	});
-}
+const supportTheadParents = new Map<string, string>();
 
 client.on(GatewayDispatchEvents.ThreadCreate, async ({ data: channel }) => {
-	if (!channel.newly_created || !ASSISTCHANNELS.includes(channel.parent_id ?? "")) {
+	if (!channel.parent_id || !ASSISTCHANNELS.includes(channel.parent_id)) {
 		return;
 	}
 
-	const receivedAt = Date.now();
+	supportTheadParents.set(channel.id, channel.parent_id);
+});
 
-	// Messages can only be sent after the thread starter message has arrived.
-	// This can take substantial amounts of time after thread create in the case of large attachments
-	const collected = await waitForMessage(channel.id, 60_000).catch((error: Error) => {
-		const failedAt = Date.now();
-		const failedAfterSeconds = (failedAt - receivedAt) / 1_000;
-		logger.info(
-			error,
-			`Failed while waiting for a message in channel ${channel.id}: ${
-				error.message
-			}, failed after: ${failedAfterSeconds.toFixed(2)}s`,
-		);
-	});
-
-	if (!collected) {
+client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
+	const parent = supportTheadParents.get(message.channel_id);
+	if (message.id !== message.channel_id || !parent || !ASSISTCHANNELS.includes(parent)) {
 		return;
 	}
+
+	supportTheadParents.delete(message.channel_id);
 
 	const parts: string[] = [];
-	if (channel.parent_id === SUPPORT_CHANNEL_VOICE) {
+	if (parent === SUPPORT_CHANNEL_VOICE) {
 		parts.push(
 			"- What are your intents? `GuildVoiceStates` is **required** to receive voice data!",
 			"- Show what dependencies you are using -- `generateDependencyReport()` is exported from `@discordjs/voice`.",
@@ -156,7 +121,7 @@ client.on(GatewayDispatchEvents.ThreadCreate, async ({ data: channel }) => {
 		);
 	}
 
-	if (channel.parent_id === SUPPORT_CHANNEL) {
+	if (parent === SUPPORT_CHANNEL) {
 		parts.push(
 			"- What's your exact discord.js `npm list discord.js` and node `node -v` version?",
 			"- Not a discord.js issue? Check out <#1081585952654360687>.",
@@ -170,7 +135,7 @@ client.on(GatewayDispatchEvents.ThreadCreate, async ({ data: channel }) => {
 		"- Show your code!",
 	);
 
-	await client.api.channels.createMessage(channel.id, {
+	await client.api.channels.createMessage(message.channel_id, {
 		flags: MessageFlags.IsComponentsV2,
 		components: [
 			{
