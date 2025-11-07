@@ -1,13 +1,13 @@
 [member-arrive]
 keyphrases = ["members didn't arrive in time"]
 content = """
-Discord introduced a rate limit on requesting all guild members [(src)](<https://discord.com/developers/docs/change-log#introducing-rate-limit-when-requesting-all-guild-members>)
--# While the announcements state 01/11/2025 as roll out date, they have confirmed that this has only taken full effect a few days ago.
+Discord introduced a rate limit on requesting all guild members [(source)](<https://discord.com/developers/docs/change-log#introducing-rate-limit-when-requesting-all-guild-members>)
+-# Despite the announced 01/10/2025 rollout date, it only took effect recently.
 
-- Apps can now request all members **once** per **30s** per guild.
+- Apps may only request all members **once** per **30s** per guild.
 - You will have to update your code accordingly to make sure this doesn't affect your app.
-- Look for instances of [`guild.members.fetch()`](<https://discord.js.org/docs/packages/discord.js/14.24.2/GuildMemberManager:Class#fetch>) with no or multiple user ids.
--# We are working on making the `GuildMemberManager#fetch()` call reject, if we receive this rate limit after requesting members. This will likely land in the next release.
+- Look for instances of [`guild.members.fetch()`](<https://discord.js.org/docs/packages/discord.js/stable/GuildMemberManager:Class#fetch>) with no user ids.
+-# We are working on making the `GuildMemberManager#fetch()` call reject if we receive this rate limit after requesting members. This will likely land in the next release.
 -# If you confirmed this cannot be the reason, you can find other caveats [in our guide](<https://discordjs.guide/legacy/popular-topics/errors#members-didnt-arrive-in-time>) <:djsguide:862626783890636830>.
 """
 reply = true
