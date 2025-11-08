@@ -41,7 +41,9 @@ try {
 		const autoResponse = value as unknown as AutoResponse;
 		logger.info(
 			{
-				autopresponse: { phrases: autoResponse.keyphrases },
+				autopresponse: {
+					phrases: autoResponse.keyphrases,
+				},
 			},
 			`Registering autoresponse: ${key}`,
 		);
@@ -176,9 +178,7 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction })
 			const executor = interaction.member.user.id;
 			const isOwner = executor === interaction.channel.owner_id;
 
-			const isManager =
-				(BigInt(interaction.member.permissions) & PermissionFlagsBits.ManageMessages) ===
-				PermissionFlagsBits.ManageMessages;
+			const isManager = (BigInt(interaction.member.permissions) & (1n << 52n)) === 1n << 52n;
 			const message = isOwner
 				? "The thread owner has marked this issue as solved."
 				: isManager
