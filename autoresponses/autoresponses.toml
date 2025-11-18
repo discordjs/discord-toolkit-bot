@@ -1,14 +1,21 @@
 [member-arrive]
 keyphrases = ["members didn't arrive in time"]
 content = """
-Discord introduced a rate limit on requesting all guild members [(source)](<https://discord.com/developers/docs/change-log#introducing-rate-limit-when-requesting-all-guild-members>)
--# Despite the announced 01/10/2025 rollout date, it only took effect recently.
-
-- Apps may only request all members **once** per **30s** per guild.
+Discord introduced a rate limit on requesting all guild members (**once** per **30s** per guild).
 - You will have to update your code accordingly to make sure this doesn't affect your app.
 - Look for instances of [`guild.members.fetch()`](<https://discord.js.org/docs/packages/discord.js/stable/GuildMemberManager:Class#fetch>) with no user ids.
--# We are working on making the `GuildMemberManager#fetch()` call reject if we receive this rate limit after requesting members. This will likely land in the next release.
+- Starting in version 14.25.0, discord.js rejects the returned Promise and exposes details in `error.data`.
 -# If you confirmed this cannot be the reason, you can find other caveats [in our guide](<https://discordjs.guide/legacy/popular-topics/errors#members-didnt-arrive-in-time>) <:djsguide:862626783890636830>.
+"""
+reply = true
+mention = true
+
+
+[gw-ratelimit]
+keyphrases = ["opcode 8 was rate limited", "gatewayratelimitederror"]
+content = """
+Discord introduced a rate limit on requesting all guild members (**once** per **30s** per guild).
+- Starting in version 14.25.0, discord.js rejects the request and exposes error details in `error.data` but does not re-try automatically.
 """
 reply = true
 mention = true

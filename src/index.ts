@@ -13,7 +13,6 @@ import {
 	ButtonStyle,
 	ChannelType,
 	MessageReferenceType,
-	PermissionFlagsBits,
 	Routes,
 } from "discord-api-types/v10";
 import { ComponentType, InteractionType } from "discord-api-types/v9";
