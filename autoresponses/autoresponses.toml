@@ -15,7 +15,7 @@ mention = true
 keyphrases = ["opcode 8 was rate limited", "gatewayratelimitederror"]
 content = """
 Discord introduced a rate limit on requesting all guild members (**once** per **30s** per guild).
-- Starting in version 14.25.0, discord.js rejects the request and exposes error details in `error.data` but does not re-try automatically.
+- Starting in version 14.25.0, discord.js rejects the request and exposes error details in `error.data` but does not retry automatically.
 """
 reply = true
 mention = true
