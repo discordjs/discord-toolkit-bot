@@ -95,23 +95,23 @@ client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
 	}
 });
 
-const supportTheadParents = new Map<string, string>();
+const supportThreadParents = new Map<string, string>();
 
 client.on(GatewayDispatchEvents.ThreadCreate, async ({ data: channel }) => {
 	if (!channel.parent_id || !ASSISTCHANNELS.includes(channel.parent_id)) {
 		return;
 	}
 
-	supportTheadParents.set(channel.id, channel.parent_id);
+	supportThreadParents.set(channel.id, channel.parent_id);
 });
 
 client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
-	const parent = supportTheadParents.get(message.channel_id);
+	const parent = supportThreadParents.get(message.channel_id);
 	if (message.id !== message.channel_id || !parent || !ASSISTCHANNELS.includes(parent)) {
 		return;
 	}
 
-	supportTheadParents.delete(message.channel_id);
+	supportThreadParents.delete(message.channel_id);
 
 	const parts: string[] = [];
 	if (parent === SUPPORT_CHANNEL_VOICE) {
