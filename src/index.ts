@@ -7,6 +7,7 @@ import { inlineCode } from "@discordjs/formatters";
 import { REST } from "@discordjs/rest";
 import { WebSocketManager } from "@discordjs/ws";
 import * as TOML from "@ltd/j-toml";
+import type { APIContainerComponent } from "discord-api-types/v10";
 import {
 	ApplicationCommandOptionType,
 	ApplicationCommandType,
@@ -105,14 +106,7 @@ client.on(GatewayDispatchEvents.ThreadCreate, async ({ data: channel }) => {
 	supportThreadParents.set(channel.id, channel.parent_id);
 });
 
-client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
-	const parent = supportThreadParents.get(message.channel_id);
-	if (message.id !== message.channel_id || !parent || !ASSISTCHANNELS.includes(parent)) {
-		return;
-	}
-
-	supportThreadParents.delete(message.channel_id);
-
+function getComponent(parent?: string | null, lock = false) {
 	const parts: string[] = [];
 	if (parent === SUPPORT_CHANNEL_VOICE) {
 		parts.push(
@@ -136,34 +130,44 @@ client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
 		"- Show your code!",
 	);
 
-	await client.api.channels.createMessage(message.channel_id, {
-		flags: MessageFlags.IsComponentsV2,
+	return {
+		type: ComponentType.Container,
 		components: [
 			{
-				type: ComponentType.Container,
+				type: ComponentType.TextDisplay,
+				content: parts.join("\n"),
+			},
+			{
+				type: ComponentType.Section,
 				components: [
 					{
 						type: ComponentType.TextDisplay,
-						content: parts.join("\n"),
-					},
-					{
-						type: ComponentType.Section,
-						components: [
-							{
-								type: ComponentType.TextDisplay,
-								content: "Issue solved? Press the button!",
-							},
-						],
-						accessory: {
-							type: ComponentType.Button,
-							custom_id: "solved",
-							style: ButtonStyle.Success,
-							label: "Solved",
-						},
+						content: lock ? "Issue was marked as resolved." : "Issue solved? Press the button!",
 					},
 				],
+				accessory: {
+					type: ComponentType.Button,
+					custom_id: "solved",
+					style: lock ? ButtonStyle.Secondary : ButtonStyle.Success,
+					label: "Solved",
+					disabled: lock,
+				},
 			},
 		],
+	} as APIContainerComponent;
+}
+
+client.on(GatewayDispatchEvents.MessageCreate, async ({ data: message }) => {
+	const parent = supportThreadParents.get(message.channel_id);
+	if (message.id !== message.channel_id || !parent || !ASSISTCHANNELS.includes(parent)) {
+		return;
+	}
+
+	supportThreadParents.delete(message.channel_id);
+
+	await client.api.channels.createMessage(message.channel_id, {
+		flags: MessageFlags.IsComponentsV2,
+		components: [getComponent(parent)],
 	});
 });
 
@@ -196,7 +200,9 @@ client.on(GatewayDispatchEvents.InteractionCreate, async ({ data: interaction })
 				content: message,
 			});
 
-			await client.api.interactions.updateMessage(interaction.id, interaction.token, {});
+			await client.api.interactions.updateMessage(interaction.id, interaction.token, {
+				components: [getComponent(interaction.channel.parent_id, true)],
+			});
 			await client.rest.patch(Routes.channel(interaction.channel.id), {
 				body: {
 					archived: true,
